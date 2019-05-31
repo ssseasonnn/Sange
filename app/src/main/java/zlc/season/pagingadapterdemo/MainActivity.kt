@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
+import zlc.season.paging.DataSource
 
 class MainActivity : AppCompatActivity() {
 
@@ -13,10 +14,16 @@ class MainActivity : AppCompatActivity() {
 
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = TestAdapter(TestDataSource())
+        recyclerView.adapter = TestAdapter(TestDataSourceFactory())
     }
 
-    class TestDataSource : zlc.season.paging.DataSource<String>() {
+    class TestDataSourceFactory : DataSource.Factory<String> {
+        override fun create(): DataSource<String> {
+            return TestDataSource()
+        }
+    }
+
+    class TestDataSource : DataSource<String>() {
         override fun loadInit(loadCallback: LoadCallback<String>) {
             super.loadInit(loadCallback)
             val data = mutableListOf<String>()
@@ -26,9 +33,8 @@ class MainActivity : AppCompatActivity() {
             loadCallback.setResult(data)
         }
 
-        override fun loadNextPage(loadCallback: LoadCallback<String>) {
-            super.loadNextPage(loadCallback)
-
+        override fun loadAfter(loadCallback: LoadCallback<String>) {
+            super.loadAfter(loadCallback)
             if (getItemCount() > 30) {
                 loadCallback.setResult(null, true)
                 return
@@ -40,5 +46,6 @@ class MainActivity : AppCompatActivity() {
             }
             loadCallback.setResult(data)
         }
+
     }
 }

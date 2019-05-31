@@ -6,8 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.view_holder_test.view.*
+import zlc.season.paging.DataSource
+import zlc.season.paging.PagingAdapter
 
-class TestAdapter(dataSource: zlc.season.paging.DataSource<String>) : zlc.season.paging.PagingAdapter<String, TestAdapter.TestViewHolder>(dataSource) {
+class TestAdapter(dataSource: DataSource.Factory<String>) :
+    PagingAdapter<String, TestAdapter.TestViewHolder>(dataSource) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TestViewHolder {
 
         Log.d("Adapter", "on create view holder")

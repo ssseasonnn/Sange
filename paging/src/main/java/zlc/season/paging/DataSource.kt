@@ -1,58 +1,44 @@
 package zlc.season.paging
 
+import android.support.v7.util.ListUpdateCallback
+import zlc.season.ironbranch.ioThread
+import zlc.season.ironbranch.mainThread
+import java.util.concurrent.atomic.AtomicBoolean
+
 open class DataSource<T> {
-    private val data = mutableListOf<T>()
+
+    interface Factory<T> {
+        fun create(): DataSource<T>
+    }
+
+    private val dataStore = DataStore<T>()
     private val loadState = LoadState()
 
-    private var pagingUpdateCallback: PagingAdapter.PagingUpdateCallback? = null
+    private val invalid = AtomicBoolean(false)
 
-    fun setPagingUpdateCallback(callback: PagingAdapter.PagingUpdateCallback) {
-        this.pagingUpdateCallback = callback
+    private var listUpdateCallback: ListUpdateCallback? = null
+
+    fun setUpdateCallback(callback: ListUpdateCallback) {
+        this.listUpdateCallback = callback
     }
 
-    init {
-        dispatchLoadInit()
-    }
+    fun setInvalidateCallback(block: () -> Unit) {
 
-    private fun dispatchLoadInit() {
-        ioThread {
-            loadInit(LoadCallbackImpl { data, _ ->
-                this@DataSource.data.clear()
-                this@DataSource.data.addAll(data)
-
-                pagingUpdateCallback?.onItemInserted(0, data.size)
-            })
-        }
-    }
-
-    fun dispatchLoadAround(position: Int) {
-        if (!loadState.isReady()) {
-            return
-        }
-
-        if (isTriggerLoad(position)) {
-
-            loadState.setState(LoadState.FETCHING)
-
-            ioThread {
-                loadAfter(LoadCallbackImpl { data, _ ->
-                    this@DataSource.data.addAll(data)
-                    pagingUpdateCallback?.onItemInserted(getItemCount(), data.size)
-                })
-            }
-        }
     }
 
     fun invalidate() {
-        dispatchLoadInit()
+        if (invalid.compareAndSet(false, true)) {
+            dispatchLoadInitial()
+        }
     }
 
     fun getItemCount(): Int {
-        return data.size
+        return dataStore.getItemCount()
     }
 
     fun getItem(position: Int): T {
-        return data[position]
+        dispatchLoadAround(position)
+        return dataStore.getItem(position)
     }
 
     open fun loadBefore(loadCallback: LoadCallback<T>) {}
@@ -61,34 +47,69 @@ open class DataSource<T> {
 
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
-    open fun isTriggerLoad(position: Int): Boolean {
-        if (position == data.lastIndex) {
-            return true
-        }
-        return false
-    }
-
-    inner class LoadCallbackImpl<T>(val block: (List<T>, Boolean) -> Unit) : LoadCallback<T> {
-        override fun setResult(data: List<T>?, isError: Boolean) {
-            mainThread {
-                if (isError) {
-                    loadState.setState(LoadState.FETCHING_ERROR)
-                } else {
-                    if (data != null) {
-                        block(data, isError)
-
-                        if (data.isEmpty()) {
-                            loadState.setState(LoadState.DONE_FETCHING)
-                        } else {
-                            loadState.setState(LoadState.READY_TO_FETCH)
+    private fun dispatchLoadInitial() {
+        ioThread {
+            loadInit(object : LoadCallback<T> {
+                override fun setResult(data: List<T>?) {
+                    mainThread {
+                        dispatchLoadResult(data) { data ->
+                            dataStore.submitData(data, true)
+                            listUpdateCallback?.onInserted(0, data.size)
                         }
+                        invalid.compareAndSet(true, false)
                     }
                 }
+            })
+        }
+    }
+
+    private fun dispatchLoadAround(position: Int) {
+        if (isInvalid()) return
+
+        if (!loadState.isReady()) return
+
+        if (dataStore.isAfterBoundary(position)) {
+            loadState.setState(LoadState.FETCHING)
+
+            ioThread {
+                loadAfter(object : LoadCallback<T> {
+                    override fun setResult(data: List<T>?) {
+                        mainThread {
+                            if (isInvalid()) {
+                                return@mainThread
+                            }
+
+                            dispatchLoadResult(data) { data ->
+                                dataStore.submitData(data)
+                                listUpdateCallback?.onInserted(getItemCount(), data.size)
+                            }
+                        }
+                    }
+                })
             }
         }
     }
 
+    private fun dispatchLoadResult(data: List<T>?, block: (List<T>) -> Unit) {
+        if (data != null) {
+            block(data)
+
+            if (data.isEmpty()) {
+                loadState.setState(LoadState.DONE_FETCHING)
+            } else {
+                loadState.setState(LoadState.READY_TO_FETCH)
+            }
+        } else {
+            loadState.setState(LoadState.FETCHING_ERROR)
+        }
+    }
+
+    private fun isInvalid(): Boolean {
+        return invalid.get()
+    }
+
+
     interface LoadCallback<T> {
-        fun setResult(data: List<T>?, isError: Boolean = false)
+        fun setResult(data: List<T>?)
     }
 }
