@@ -10,8 +10,8 @@ class LoadState {
 
     private var loadState = READY_TO_FETCH
 
-    fun isReady(): Boolean {
-        return loadState == READY_TO_FETCH
+    fun isNotReady(): Boolean {
+        return loadState != READY_TO_FETCH
     }
 
     fun setState(state: Int) {

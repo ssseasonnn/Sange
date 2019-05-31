@@ -22,12 +22,12 @@ open class DataSource<T> {
         this.listUpdateCallback = callback
     }
 
-    fun setInvalidateCallback(block: () -> Unit) {
-
-    }
-
+    /**
+     * Make this data source invalid and reload initial
+     */
     fun invalidate() {
         if (invalid.compareAndSet(false, true)) {
+
             dispatchLoadInitial()
         }
     }
@@ -43,13 +43,15 @@ open class DataSource<T> {
 
     open fun loadBefore(loadCallback: LoadCallback<T>) {}
 
-    open fun loadInit(loadCallback: LoadCallback<T>) {}
+    open fun loadInitial(loadCallback: LoadCallback<T>) {}
 
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
     private fun dispatchLoadInitial() {
+        loadState.setState(LoadState.FETCHING)
+
         ioThread {
-            loadInit(object : LoadCallback<T> {
+            loadInitial(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
                     mainThread {
                         dispatchLoadResult(data) { data ->
@@ -66,7 +68,7 @@ open class DataSource<T> {
     private fun dispatchLoadAround(position: Int) {
         if (isInvalid()) return
 
-        if (!loadState.isReady()) return
+        if (loadState.isNotReady()) return
 
         if (dataStore.isAfterBoundary(position)) {
             loadState.setState(LoadState.FETCHING)
@@ -74,6 +76,8 @@ open class DataSource<T> {
             ioThread {
                 loadAfter(object : LoadCallback<T> {
                     override fun setResult(data: List<T>?) {
+                        if (isInvalid()) return
+
                         mainThread {
                             if (isInvalid()) {
                                 return@mainThread
@@ -88,6 +92,7 @@ open class DataSource<T> {
                 })
             }
         }
+
     }
 
     private fun dispatchLoadResult(data: List<T>?, block: (List<T>) -> Unit) {

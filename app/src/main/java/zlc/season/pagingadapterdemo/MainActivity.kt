@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     class TestDataSource : DataSource<String>() {
-        override fun loadInit(loadCallback: LoadCallback<String>) {
-            super.loadInit(loadCallback)
+        override fun loadInitial(loadCallback: LoadCallback<String>) {
+            super.loadInitial(loadCallback)
             val data = mutableListOf<String>()
             for (i in 0 until 10) {
                 data.add("test $i")
