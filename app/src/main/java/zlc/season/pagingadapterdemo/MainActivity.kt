@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         override fun loadAfter(loadCallback: LoadCallback<String>) {
             super.loadAfter(loadCallback)
             if (getItemCount() > 30) {
-                loadCallback.setResult(null, true)
+                loadCallback.setResult(null)
                 return
             }
 
