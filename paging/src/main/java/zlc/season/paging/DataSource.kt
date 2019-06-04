@@ -5,112 +5,151 @@ import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class DataSource<T> {
+open class DataSource<T>(private val config: Config = Config()) {
 
-    interface Factory<T> {
-        fun create(): DataSource<T>
-    }
+    class Config(
+            val useDiff: Boolean = true
+    )
 
-    private val dataStore = DataStore<T>()
-    private val loadState = LoadState()
+    protected open val dataStorage = DataStorage<T>()
 
+    private var lastPosition = -1
+    private val fetchingState = FetchingState()
     private val invalid = AtomicBoolean(false)
 
-    private var listUpdateCallback: ListUpdateCallback? = null
+    private var pagingListDiffer = PagingListDiffer<T>()
 
-    fun setUpdateCallback(callback: ListUpdateCallback) {
-        this.listUpdateCallback = callback
+    fun setListCallback(callback: ListUpdateCallback) {
+        pagingListDiffer.updateCallback = callback
+        pagingListDiffer.submitList(dataStorage.all())
+
     }
+
+    protected fun notifySubmitList() {
+        pagingListDiffer.submitList(dataStorage.all())
+    }
+
 
     /**
      * Make this data source invalid and reload initial
      */
-    fun invalidate() {
-        if (invalid.compareAndSet(false, true)) {
-
-            dispatchLoadInitial()
+    fun invalidate(clear: Boolean = true) {
+        assertMainThread {
+            if (invalid.compareAndSet(false, true)) {
+                if (clear) {
+                    dataStorage.clear()
+                }
+                dispatchLoadInitial()
+            }
         }
     }
 
-    fun getItemCount(): Int {
-        return dataStore.getItemCount()
-    }
+    fun size() = dataStorage.size()
 
-    fun getItem(position: Int): T {
+    fun get(position: Int) = dataStorage.get(position)
+
+    internal fun getItemCount() = size()
+
+    internal fun getItem(position: Int): T {
         dispatchLoadAround(position)
-        return dataStore.getItem(position)
+        lastPosition = position
+        return get(position)
     }
 
-    open fun loadBefore(loadCallback: LoadCallback<T>) {}
+    open fun loadBefore(loadCallback: LoadCallback<T>) {
+        loadCallback.setResult(null)
+    }
 
     open fun loadInitial(loadCallback: LoadCallback<T>) {}
 
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
     private fun dispatchLoadInitial() {
-        loadState.setState(LoadState.FETCHING)
+        log("dispatchLoadInitial --> ${Thread.currentThread().name}")
+        scheduleFetching(function = ::loadInitial, isInitial = true) {
+            dataStorage.addAll(it)
+            notifySubmitList()
+        }
+    }
+
+    private fun dispatchLoadAround(position: Int) {
+        log("dispatchLoadAround-->${Thread.currentThread().name}")
+        if (isInvalid()) return
+
+        if (isInvalidPosition(position)) {
+            return
+        }
+
+        if (fetchingState.isNotReady()) return
+
+        if (reachEndBoundary(position)) {
+            log("load after --> ${Thread.currentThread().name}")
+            scheduleFetching(function = ::loadAfter) {
+                dataStorage.addAll(it)
+                notifySubmitList()
+            }
+            return
+        }
+
+        if (reachStartBoundary(position)) {
+            log("load before --> ${Thread.currentThread().name}")
+            scheduleFetching(function = ::loadBefore) {
+                dataStorage.addAll(0, it)
+                notifySubmitList()
+            }
+            return
+        }
+    }
+
+    private fun scheduleFetching(
+            function: (LoadCallback<T>) -> Unit,
+            isInitial: Boolean = false,
+            block: (List<T>) -> Unit
+    ) {
+        fetchingState.setState(FetchingState.FETCHING)
 
         ioThread {
-            loadInitial(object : LoadCallback<T> {
+            function(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
                     mainThread {
-                        dispatchLoadResult(data) { data ->
-                            dataStore.submitData(data, true)
-                            listUpdateCallback?.onInserted(0, data.size)
+                        if (!isInitial) {
+                            if (isInvalid()) return@mainThread
                         }
-                        invalid.compareAndSet(true, false)
+                        if (data != null) {
+                            block(data)
+
+                            if (data.isEmpty()) {
+                                fetchingState.setState(FetchingState.DONE_FETCHING)
+                            } else {
+                                fetchingState.setState(FetchingState.READY_TO_FETCH)
+                            }
+                        } else {
+                            fetchingState.setState(FetchingState.FETCHING_ERROR)
+                        }
+
+                        if (isInitial) {
+                            invalid.compareAndSet(true, false)
+                        }
                     }
                 }
             })
         }
     }
 
-    private fun dispatchLoadAround(position: Int) {
-        if (isInvalid()) return
-
-        if (loadState.isNotReady()) return
-
-        if (dataStore.isAfterBoundary(position)) {
-            loadState.setState(LoadState.FETCHING)
-
-            ioThread {
-                loadAfter(object : LoadCallback<T> {
-                    override fun setResult(data: List<T>?) {
-                        if (isInvalid()) return
-
-                        mainThread {
-                            if (isInvalid()) {
-                                return@mainThread
-                            }
-
-                            dispatchLoadResult(data) { data ->
-                                dataStore.submitData(data)
-                                listUpdateCallback?.onInserted(getItemCount(), data.size)
-                            }
-                        }
-                    }
-                })
-            }
-        }
-
-    }
-
-    private fun dispatchLoadResult(data: List<T>?, block: (List<T>) -> Unit) {
-        if (data != null) {
-            block(data)
-
-            if (data.isEmpty()) {
-                loadState.setState(LoadState.DONE_FETCHING)
-            } else {
-                loadState.setState(LoadState.READY_TO_FETCH)
-            }
-        } else {
-            loadState.setState(LoadState.FETCHING_ERROR)
-        }
-    }
-
     private fun isInvalid(): Boolean {
         return invalid.get()
+    }
+
+    open fun isInvalidPosition(position: Int): Boolean {
+        return position < 0 || position >= size()
+    }
+
+    open fun reachEndBoundary(position: Int): Boolean {
+        return lastPosition < position && position == size() - 1
+    }
+
+    open fun reachStartBoundary(position: Int): Boolean {
+        return lastPosition > position && position == 0
     }
 
 
