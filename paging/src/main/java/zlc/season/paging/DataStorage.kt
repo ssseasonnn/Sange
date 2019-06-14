@@ -1,27 +1,37 @@
 package zlc.season.paging
 
-open class DataStorage<T> {
+open class DataStorage<T> : Storage<T> {
     protected val data = mutableListOf<T>()
 
-    open fun all() = data.toList()
+    override fun all(): List<T> {
+        return data.toList()
+    }
 
-    open fun size() = data.size
+    override fun clear() = data.clear()
 
-    open fun get(position: Int) = data[position]
+    override fun addAll(t: List<T>) {
+        data.addAll(t)
+    }
 
-    open fun clear() = data.clear()
+    override fun addAll(position: Int, t: List<T>) {
+        data.addAll(position, t)
+    }
 
-    fun addAll(t: List<T>) = data.addAll(t)
+    override fun add(t: T) {
+        data.add(t)
+    }
 
-    fun addAll(position: Int, t: List<T>) = data.addAll(position, t)
+    override fun add(position: Int, t: T) = data.add(position, t)
 
-    fun add(t: T) = data.add(t)
+    override fun removeAt(position: Int) {
+        data.removeAt(position)
+    }
 
-    fun add(position: Int, t: T) = data.add(position, t)
+    override fun remove(t: T) {
+        data.remove(t)
+    }
 
-    fun removeAt(position: Int) = data.removeAt(position)
-
-    fun remove(t: T) = data.remove(t)
-
-    fun indexOf(t: T) = data.indexOf(t)
+    override fun indexOf(t: T): Int {
+        return data.indexOf(t)
+    }
 }

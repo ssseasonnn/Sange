@@ -21,7 +21,7 @@ class GithubDataSource : DataSource<GithubRepositoryResp.GithubRepository>() {
         page = 0
         refresh.postValue(true)
 
-        Thread.sleep(2000)
+        Thread.sleep(5000)
         val result = mutableListOf<GithubRepositoryResp.GithubRepository>()
         for (i in 0 until 10) {
             result.add(GithubRepositoryResp.GithubRepository(id = i, name = "id $i"))
@@ -43,7 +43,7 @@ class GithubDataSource : DataSource<GithubRepositoryResp.GithubRepository>() {
 
         page++
 
-        Thread.sleep(2000)
+        Thread.sleep(5000)
         val result = mutableListOf<GithubRepositoryResp.GithubRepository>()
         for (i in page * 10 until page * 10 + 10) {
             result.add(GithubRepositoryResp.GithubRepository(id = i, name = "id $i"))

@@ -1,7 +1,9 @@
 package zlc.season.paging
 
 open class MutableDataSource<T> : DataSource<T>() {
-    override val dataStorage = MutableDataStorage<T>()
+    override fun onCreateStorage(): MutableDataStorage<T> {
+        return MutableDataStorage(DataStorage())
+    }
 
     fun clear() {
         assertMainThread {

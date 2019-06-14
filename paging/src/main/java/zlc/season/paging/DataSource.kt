@@ -5,19 +5,28 @@ import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class DataSource<T>(private val config: Config = Config()) {
+open class DataSource<T> {
 
     class Config(
-            val useDiff: Boolean = true
+        val useDiff: Boolean = true
     )
 
-    protected open val dataStorage = DataStorage<T>()
+    enum class Direction {
+        BEFORE, AFTER
+    }
 
-    private var lastPosition = -1
-    private val fetchingState = FetchingState()
+    protected val dataStorage by lazy { onCreateStorage() }
+
+    private val stateMap = mutableMapOf<Direction, FetchingState>()
+
     private val invalid = AtomicBoolean(false)
 
     private var pagingListDiffer = PagingListDiffer<T>()
+
+    init {
+        stateMap[Direction.BEFORE] = FetchingState()
+        stateMap[Direction.AFTER] = FetchingState()
+    }
 
     fun setListCallback(callback: ListUpdateCallback) {
         pagingListDiffer.updateCallback = callback
@@ -44,20 +53,18 @@ open class DataSource<T>(private val config: Config = Config()) {
         }
     }
 
-    fun size() = dataStorage.size()
+    fun getItemCount() = pagingListDiffer.size()
 
-    fun get(position: Int) = dataStorage.get(position)
+    fun getItem(position: Int): T {
+        return pagingListDiffer.get(position)
+    }
 
-    internal fun getItemCount() = size()
-
-    internal fun getItem(position: Int): T {
-        dispatchLoadAround(position)
-        lastPosition = position
-        return get(position)
+    open fun onCreateStorage(): Storage<T> {
+        return DataStorage()
     }
 
     open fun loadBefore(loadCallback: LoadCallback<T>) {
-        loadCallback.setResult(null)
+        loadCallback.setResult(emptyList())
     }
 
     open fun loadInitial(loadCallback: LoadCallback<T>) {}
@@ -65,35 +72,39 @@ open class DataSource<T>(private val config: Config = Config()) {
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
     private fun dispatchLoadInitial() {
-        log("dispatchLoadInitial --> ${Thread.currentThread().name}")
-        scheduleFetching(function = ::loadInitial, isInitial = true) {
-            dataStorage.addAll(it)
-            notifySubmitList()
+        log("load initial")
+        ioThread {
+            loadInitial(object : LoadCallback<T> {
+                override fun setResult(data: List<T>?) {
+                    mainThread {
+                        log("load initial success")
+                        if (data != null) {
+                            dataStorage.addAll(data)
+                            notifySubmitList()
+                        }
+                        invalid.compareAndSet(true, false)
+
+                        setFetchingState(Direction.BEFORE, FetchingState.READY_TO_FETCH)
+                        setFetchingState(Direction.AFTER, FetchingState.READY_TO_FETCH)
+                    }
+                }
+            })
         }
     }
 
-    private fun dispatchLoadAround(position: Int) {
-        log("dispatchLoadAround-->${Thread.currentThread().name}")
+    fun dispatchLoadAround(direction: Direction) {
         if (isInvalid()) return
 
-        if (isInvalidPosition(position)) {
-            return
-        }
-
-        if (fetchingState.isNotReady()) return
-
-        if (reachEndBoundary(position)) {
-            log("load after --> ${Thread.currentThread().name}")
-            scheduleFetching(function = ::loadAfter) {
+        if (direction == Direction.AFTER) {
+            scheduleFetching(::loadAfter, Direction.AFTER) {
                 dataStorage.addAll(it)
                 notifySubmitList()
             }
             return
         }
 
-        if (reachStartBoundary(position)) {
-            log("load before --> ${Thread.currentThread().name}")
-            scheduleFetching(function = ::loadBefore) {
+        if (direction == Direction.BEFORE) {
+            scheduleFetching(::loadBefore, Direction.BEFORE) {
                 dataStorage.addAll(0, it)
                 notifySubmitList()
             }
@@ -102,33 +113,32 @@ open class DataSource<T>(private val config: Config = Config()) {
     }
 
     private fun scheduleFetching(
-            function: (LoadCallback<T>) -> Unit,
-            isInitial: Boolean = false,
-            block: (List<T>) -> Unit
+        function: (LoadCallback<T>) -> Unit,
+        direction: Direction,
+        block: (List<T>) -> Unit
     ) {
-        fetchingState.setState(FetchingState.FETCHING)
+        if (getState(direction).isNotReady()) {
+            return
+        }
+
+        setFetchingState(direction, FetchingState.FETCHING)
 
         ioThread {
             function(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
                     mainThread {
-                        if (!isInitial) {
-                            if (isInvalid()) return@mainThread
-                        }
+                        if (isInvalid()) return@mainThread
+
                         if (data != null) {
                             block(data)
 
                             if (data.isEmpty()) {
-                                fetchingState.setState(FetchingState.DONE_FETCHING)
+                                setFetchingState(direction, FetchingState.DONE_FETCHING)
                             } else {
-                                fetchingState.setState(FetchingState.READY_TO_FETCH)
+                                setFetchingState(direction, FetchingState.READY_TO_FETCH)
                             }
                         } else {
-                            fetchingState.setState(FetchingState.FETCHING_ERROR)
-                        }
-
-                        if (isInitial) {
-                            invalid.compareAndSet(true, false)
+                            setFetchingState(direction, FetchingState.FETCHING_ERROR)
                         }
                     }
                 }
@@ -136,22 +146,17 @@ open class DataSource<T>(private val config: Config = Config()) {
         }
     }
 
+    protected open fun setFetchingState(direction: Direction, newState: Int) {
+        getState(direction).setState(newState)
+    }
+
+    private fun getState(direction: Direction): FetchingState {
+        return stateMap[direction]!!
+    }
+
     private fun isInvalid(): Boolean {
         return invalid.get()
     }
-
-    open fun isInvalidPosition(position: Int): Boolean {
-        return position < 0 || position >= size()
-    }
-
-    open fun reachEndBoundary(position: Int): Boolean {
-        return lastPosition < position && position == size() - 1
-    }
-
-    open fun reachStartBoundary(position: Int): Boolean {
-        return lastPosition > position && position == 0
-    }
-
 
     interface LoadCallback<T> {
         fun setResult(data: List<T>?)

@@ -1,27 +1,48 @@
 package zlc.season.paging
 
-class MutableDataStorage<T> : DataStorage<T>() {
+class MutableDataStorage<T>(val storage: Storage<T>) : Storage<T> {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
 
-    private var currentList = emptyList<T>()
-
-
     override fun all(): List<T> {
-        currentList = listOf(headers, data, footers)
-        return currentList
-    }
-
-    override fun size(): Int {
-        return sizeOf(headers, data, footers)
-    }
-
-    override fun get(position: Int): T {
-        return currentList[position]
+        val result = mutableListOf<T>()
+        result.addAll(headers)
+        result.addAll(storage.all())
+        result.addAll(footers)
+        return result
     }
 
     override fun clear() {
-        clearOf(headers, data, footers)
+        storage.clear()
+        clearOf(headers, footers)
+    }
+
+    override fun addAll(t: List<T>) {
+        storage.addAll(t)
+    }
+
+    override fun addAll(position: Int, t: List<T>) {
+        storage.addAll(position, t)
+    }
+
+    override fun add(t: T) {
+        storage.add(t)
+    }
+
+    override fun add(position: Int, t: T) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun removeAt(position: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun remove(t: T) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun indexOf(t: T): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     /**
