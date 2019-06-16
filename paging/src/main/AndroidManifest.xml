@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="zlc.season.paging"/>
+<manifest package="zlc.season.paging" />
