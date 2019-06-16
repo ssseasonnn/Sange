@@ -37,19 +37,15 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     fun indexHeaderOf(t: T) = headers.indexOf(t)
 
     fun setHeader(old: T, new: T) {
-        try {
-            headers[indexOf(old)] = new
-        } catch (t: Throwable) {
-            t.printStackTrace()
-        }
+        headers[indexOf(old)] = new
     }
 
     fun setHeader(index: Int, new: T) {
-        try {
-            headers[index] = new
-        } catch (t: Throwable) {
-            t.printStackTrace()
-        }
+        headers[index] = new
+    }
+
+    fun clearHeader() {
+        headers.clear()
     }
 
 
@@ -71,18 +67,12 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     fun indexFooterOf(t: T) = footers.indexOf(t)
 
     fun setFooter(old: T, new: T) {
-        try {
-            footers[indexOf(old)] = new
-        } catch (t: Throwable) {
-            t.printStackTrace()
-        }
+        footers[indexOf(old)] = new
     }
 
     fun setFooter(index: Int, new: T) {
-        try {
-            footers[index] = new
-        } catch (t: Throwable) {
-            t.printStackTrace()
-        }
+        footers[index] = new
     }
+
+    fun clearFooter() = footers.clear()
 }

@@ -8,35 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
 
     class Config(
-        val useDiff: Boolean = true
+            val useDiff: Boolean = true
     )
-
-    enum class Direction {
-        BEFORE, AFTER
-    }
 
     protected open val dataStorage = DataStorage<T>()
 
-    private val stateMap = mutableMapOf<Direction, FetchingState>()
-
-    protected val invalid = AtomicBoolean(false)
-
+    private val fetchingState = FetchingState()
+    private val invalid = AtomicBoolean(false)
     private var pagingListDiffer = PagingListDiffer<T>()
-
-    init {
-        stateMap[Direction.BEFORE] = FetchingState()
-        stateMap[Direction.AFTER] = FetchingState()
-    }
-
-
-    fun setAdapter(adapter: RecyclerView.Adapter<*>) {
-        pagingListDiffer.adapter = adapter
-    }
-
-    protected fun notifySubmitList(initial: Boolean = false) {
-        pagingListDiffer.submitList(dataStorage.all(), initial)
-    }
-
 
     /**
      * Invalidate data source.
@@ -51,16 +30,27 @@ open class DataSource<T> {
     }
 
     /**
-     * Data functions
+     * Notify submit list.
      */
-    fun clear() {
+    fun notifySubmitList(initial: Boolean = false) {
         ensureMainThread {
-            dataStorage.clear()
-            notifySubmitList()
+            pagingListDiffer.submitList(dataStorage.all(), initial)
         }
     }
 
-    fun add(t: T, position: Int = -1) {
+    /**
+     * Data functions
+     */
+    fun clear(delay: Boolean = false) {
+        ensureMainThread {
+            dataStorage.clear()
+            if (!delay) {
+                notifySubmitList()
+            }
+        }
+    }
+
+    fun add(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.add(position, t)
@@ -68,51 +58,63 @@ open class DataSource<T> {
                 dataStorage.add(t)
             }
 
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun addAll(list: List<T>, position: Int = -1) {
+    fun addAll(list: List<T>, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.addAll(position, list)
             } else {
                 dataStorage.addAll(list)
             }
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun removeAt(position: Int) {
+    fun removeAt(position: Int, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.removeAt(position)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun remove(t: T) {
+    fun remove(t: T, delay: Boolean = false) {
         ensureMainThread {
             val index = dataStorage.indexOf(t)
             if (index != -1) {
                 dataStorage.remove(t)
-                notifySubmitList()
+                if (!delay) {
+                    notifySubmitList()
+                }
             } else {
                 throw IllegalArgumentException("Wrong index!")
             }
         }
     }
 
-    fun set(old: T, new: T) {
+    fun set(old: T, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.set(old, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun set(index: Int, new: T) {
+    fun set(index: Int, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.set(index, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
@@ -124,6 +126,23 @@ open class DataSource<T> {
         return pagingListDiffer.size()
     }
 
+    /**
+     * Use [loadInitial] for initial loading, use [LoadCallback] callback
+     * to set the result after loading is complete.
+     */
+    open fun loadInitial(loadCallback: LoadCallback<T>) {}
+
+    /**
+     * Use [loadAfter] for load next page, use [LoadCallback] callback
+     * to set the result after loading is complete.
+     */
+    open fun loadAfter(loadCallback: LoadCallback<T>) {}
+
+    internal fun setAdapter(adapter: RecyclerView.Adapter<*>) {
+        pagingListDiffer.adapter = adapter
+        invalidate()
+    }
+
     internal fun getItemCount() = size()
 
     internal fun getItem(position: Int): T {
@@ -131,105 +150,67 @@ open class DataSource<T> {
         return get(position)
     }
 
-    open fun loadBefore(loadCallback: LoadCallback<T>) {
-        loadCallback.setResult(emptyList())
-    }
-
-    open fun loadInitial(loadCallback: LoadCallback<T>) {}
-
-    open fun loadAfter(loadCallback: LoadCallback<T>) {}
-
-    open fun dispatchLoadInitial() {
-        log("load initial start")
+    private fun dispatchLoadInitial() {
         ioThread {
             loadInitial(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?) {
+                override fun setResult(data: List<T>?, delay: Boolean) {
                     mainThread {
-                        if (data != null) {
+                        if (!data.isNullOrEmpty()) {
                             dataStorage.addAll(data)
-                            notifySubmitList(true)
+                            if (!delay) {
+                                notifySubmitList(true)
+                            }
                         }
                         invalid.compareAndSet(true, false)
 
-                        setFetchingState(Direction.BEFORE, FetchingState.READY_TO_FETCH)
-                        setFetchingState(Direction.AFTER, FetchingState.READY_TO_FETCH)
-
-                        log("load initial stop")
+                        fetchingState.setState(FetchingState.READY_TO_FETCH)
                     }
                 }
             })
         }
     }
 
-    var lastPosition = -1
-
-    fun dispatchLoadAround(position: Int = lastPosition) {
-        lastPosition = position
-
-        log("dispatch load around")
+    private fun dispatchLoadAround(position: Int) {
         if (isInvalid()) return
 
         if (position == getItemCount() - 1) {
-            log("load after start")
-            scheduleFetching(::loadAfter, Direction.AFTER) {
-                dataStorage.addAll(it)
-                notifySubmitList()
-                log("load after stop")
-            }
-            return
-        }
-
-        if (position == 0) {
-            log("load before start")
-            scheduleFetching(::loadBefore, Direction.BEFORE) {
-                dataStorage.addAll(0, it)
-                notifySubmitList()
-                log("load before stop")
-            }
+            scheduleLoadAfter()
             return
         }
     }
 
-    private fun scheduleFetching(
-        function: (LoadCallback<T>) -> Unit,
-        direction: Direction,
-        block: (List<T>) -> Unit
-    ) {
-        if (getState(direction).isNotReady()) {
+    private fun scheduleLoadAfter() {
+        if (fetchingState.isNotReady()) {
             return
         }
 
-        setFetchingState(direction, FetchingState.FETCHING)
+        fetchingState.setState(FetchingState.FETCHING)
 
         ioThread {
-            function(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?) {
+            loadAfter(object : LoadCallback<T> {
+                override fun setResult(data: List<T>?, delay: Boolean) {
+                    if (isInvalid()) return
                     mainThread {
                         if (isInvalid()) return@mainThread
 
                         if (data != null) {
-                            block(data)
-
                             if (data.isEmpty()) {
-                                setFetchingState(direction, FetchingState.DONE_FETCHING)
+                                fetchingState.setState(FetchingState.DONE_FETCHING)
                             } else {
-                                setFetchingState(direction, FetchingState.READY_TO_FETCH)
+                                dataStorage.addAll(data)
+
+                                if (!delay) {
+                                    notifySubmitList()
+                                }
+                                fetchingState.setState(FetchingState.READY_TO_FETCH)
                             }
                         } else {
-                            setFetchingState(direction, FetchingState.FETCHING_ERROR)
+                            fetchingState.setState(FetchingState.FETCHING_ERROR)
                         }
                     }
                 }
             })
         }
-    }
-
-    protected open fun setFetchingState(direction: Direction, newState: Int) {
-        getState(direction).setState(newState)
-    }
-
-    private fun getState(direction: Direction): FetchingState {
-        return stateMap[direction]!!
     }
 
     private fun isInvalid(): Boolean {
@@ -237,6 +218,6 @@ open class DataSource<T> {
     }
 
     interface LoadCallback<T> {
-        fun setResult(data: List<T>?)
+        fun setResult(data: List<T>?, delay: Boolean = false)
     }
 }

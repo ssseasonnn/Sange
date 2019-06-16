@@ -14,8 +14,6 @@ class FetchingState {
         return loadState != READY_TO_FETCH
     }
 
-    fun getState() = loadState
-
     fun setState(state: Int) {
         this.loadState = state
     }

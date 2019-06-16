@@ -1,163 +1,164 @@
 package zlc.season.paging
 
-import zlc.season.ironbranch.ioThread
-import zlc.season.ironbranch.mainThread
-
 open class MultiDataSource<T> : DataSource<T>() {
-
-    override val dataStorage: MultiDataStorage<T> = MultiDataStorage()
-
-    interface MultiLoadCallback<T> : LoadCallback<T> {
-        fun setHeaderResult(header: List<T>?)
-    }
-
-    override fun dispatchLoadInitial() {
-        log("load initial start")
-        ioThread {
-            loadInitial(object : MultiLoadCallback<T> {
-                override fun setHeaderResult(header: List<T>?) {
-                    mainThread {
-                        if (header != null) {
-                            dataStorage.addHeaders(header)
-                        }
-                    }
-                }
-
-                override fun setResult(data: List<T>?) {
-                    mainThread {
-                        if (data != null) {
-                            dataStorage.addAll(data)
-                            notifySubmitList(true)
-                        }
-                        invalid.compareAndSet(true, false)
-
-                        setFetchingState(Direction.BEFORE, FetchingState.READY_TO_FETCH)
-                        setFetchingState(Direction.AFTER, FetchingState.READY_TO_FETCH)
-
-                        log("load initial stop")
-                    }
-                }
-            })
-        }
-    }
-
-    override fun loadInitial(loadCallback: LoadCallback<T>) {
-        super.loadInitial(loadCallback)
-    }
+    override val dataStorage = MultiDataStorage<T>()
 
     /**
      * Header functions
+     * @param delay If true, the update is delayed
      */
-    fun addHeader(t: T, position: Int = -1) {
+    fun addHeader(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.addHeader(position, t)
             } else {
                 dataStorage.addHeader(t)
             }
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun addAllHeaders(list: List<T>, position: Int = -1) {
+    fun addHeaders(list: List<T>, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.addHeaders(position, list)
             } else {
                 dataStorage.addHeaders(list)
             }
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun removeHeaderAt(position: Int) {
+    fun removeHeaderAt(position: Int, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.removeHeaderAt(position)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun removeHeader(t: T) {
+    fun removeHeader(t: T, delay: Boolean = false) {
         ensureMainThread {
             val index = dataStorage.indexHeaderOf(t)
             if (index != -1) {
                 dataStorage.removeHeader(t)
-                notifySubmitList()
+                if (!delay) {
+                    notifySubmitList()
+                }
             } else {
                 throw IllegalArgumentException("Wrong index!")
             }
         }
     }
 
-    fun setHeader(old: T, new: T) {
+    fun setHeader(old: T, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.setHeader(old, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun setHeader(index: Int, new: T) {
+    fun setHeader(index: Int, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.setHeader(index, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
+        }
+    }
+
+    fun clearHeader(delay: Boolean = false) {
+        ensureMainThread {
+            dataStorage.clearHeader()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
     /**
      * Footer functions
      */
-    fun addFooter(t: T, position: Int = -1) {
+    fun addFooter(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.addFooter(position, t)
             } else {
                 dataStorage.addFooter(t)
             }
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun addAllFooters(list: List<T>, position: Int = -1) {
+    fun addFooters(list: List<T>, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
                 dataStorage.addFooters(position, list)
             } else {
                 dataStorage.addFooters(list)
             }
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun removeFooterAt(position: Int) {
+    fun removeFooterAt(position: Int, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.removeFooterAt(position)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun removeFooter(t: T) {
+    fun removeFooter(t: T, delay: Boolean = false) {
         ensureMainThread {
             val index = dataStorage.indexFooterOf(t)
             if (index != -1) {
                 dataStorage.removeFooter(t)
-                notifySubmitList()
+                if (!delay) {
+                    notifySubmitList()
+                }
             } else {
                 throw IllegalArgumentException("Wrong index!")
             }
         }
     }
 
-    fun setFooter(old: T, new: T) {
+    fun setFooter(old: T, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.setFooter(old, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
-    fun setFooter(index: Int, new: T) {
+    fun setFooter(index: Int, new: T, delay: Boolean = false) {
         ensureMainThread {
             dataStorage.setFooter(index, new)
-            notifySubmitList()
+            if (!delay) {
+                notifySubmitList()
+            }
+        }
+    }
+
+    fun clearFooter(delay: Boolean = false) {
+        ensureMainThread {
+            dataStorage.clearFooter()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 }

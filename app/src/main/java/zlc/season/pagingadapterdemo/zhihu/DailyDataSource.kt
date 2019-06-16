@@ -13,7 +13,7 @@ class DailyDataSource : MultiDataSource<DailyItem>() {
         api.getDaily()
                 .subscribe({
                     val header = DailyHeaderItem(it.top_stories)
-                    addHeader(header)
+                    this.addHeader(header, delay = true)
 
                     val items = mutableListOf<DailyItem>()
                     it.stories.forEach {
@@ -27,5 +27,6 @@ class DailyDataSource : MultiDataSource<DailyItem>() {
 
     override fun loadAfter(loadCallback: LoadCallback<DailyItem>) {
         super.loadAfter(loadCallback)
+        loadCallback.setResult(emptyList())
     }
 }
