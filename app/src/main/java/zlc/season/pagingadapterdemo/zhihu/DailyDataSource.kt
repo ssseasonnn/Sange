@@ -1,7 +1,6 @@
 package zlc.season.pagingadapterdemo.zhihu
 
 import zlc.season.paging.MultiDataSource
-import zlc.season.paging.log
 import zlc.season.pagingadapterdemo.api.ZhihuApi
 
 class DailyDataSource : MultiDataSource<DailyItem>() {
@@ -21,7 +20,7 @@ class DailyDataSource : MultiDataSource<DailyItem>() {
                     }
                     loadCallback.setResult(items)
                 }, {
-                    it.message?.let { it1 -> log(it1) }
+                    loadCallback.setResult(null)
                 })
     }
 

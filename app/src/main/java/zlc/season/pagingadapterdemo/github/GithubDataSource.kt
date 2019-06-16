@@ -1,4 +1,4 @@
-package zlc.season.pagingadapterdemo
+package zlc.season.pagingadapterdemo.github
 
 import android.arch.lifecycle.MutableLiveData
 import zlc.season.paging.DataSource
@@ -13,32 +13,28 @@ class GithubDataSource : DataSource<GithubRepositoryResp.GithubRepository>() {
 
     var refresh = MutableLiveData<Boolean>()
 
-    fun setSearchKey(key: String) {
-        this.searchKey = key
-    }
-
     override fun loadInitial(loadCallback: LoadCallback<GithubRepositoryResp.GithubRepository>) {
         page = 0
         refresh.postValue(true)
 
         githubApi.searchRepository("$searchKey+language:kotlin", page)
-            .subscribe({
-                loadCallback.setResult(it.items)
-                refresh.postValue(false)
-            }, {
-                loadCallback.setResult(null)
-                refresh.postValue(false)
-            })
+                .subscribe({
+                    loadCallback.setResult(it.items)
+                    refresh.postValue(false)
+                }, {
+                    loadCallback.setResult(null)
+                    refresh.postValue(false)
+                })
     }
 
     override fun loadAfter(loadCallback: LoadCallback<GithubRepositoryResp.GithubRepository>) {
         page++
 
         githubApi.searchRepository("$searchKey+language:kotlin", page)
-            .subscribe({
-                loadCallback.setResult(it.items)
-            }, {
-                loadCallback.setResult(null)
-            })
+                .subscribe({
+                    loadCallback.setResult(it.items)
+                }, {
+                    loadCallback.setResult(null)
+                })
     }
 }

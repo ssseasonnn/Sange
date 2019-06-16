@@ -4,6 +4,7 @@
     package="zlc.season.pagingadapterdemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,9 +23,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".GithubRepoSearchActivity"
-            android:label="" />
+        <activity android:name=".github.GithubRepoSearchActivity" />
 
         <activity android:name=".zhihu.DailyActivity" />
     </application>

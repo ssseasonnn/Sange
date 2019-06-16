@@ -10,7 +10,7 @@ import zlc.season.pagingadapterdemo.R
 
 
 class DailyAdapter(dataSource: MultiDataSource<DailyItem>) :
-    MultiPagingAdapter<DailyItem, PagingViewHolder<DailyItem>>(dataSource) {
+        MultiPagingAdapter<DailyItem, PagingViewHolder<DailyItem>>(dataSource) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagingViewHolder<DailyItem> {
         if (viewType == 0) {
@@ -23,7 +23,7 @@ class DailyAdapter(dataSource: MultiDataSource<DailyItem>) :
 
 
 class DailyHeaderViewHolder(parent: ViewGroup, res: Int) :
-    PagingViewHolder<DailyItem>(parent, res) {
+        PagingViewHolder<DailyItem>(parent, res) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)
@@ -40,7 +40,7 @@ class DailyHeaderViewHolder(parent: ViewGroup, res: Int) :
 }
 
 class DailyNormalViewHolder(parent: ViewGroup, res: Int) :
-    PagingViewHolder<DailyItem>(parent, res) {
+        PagingViewHolder<DailyItem>(parent, res) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)

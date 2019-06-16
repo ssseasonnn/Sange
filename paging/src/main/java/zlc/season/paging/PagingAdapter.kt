@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView.Adapter
 import android.support.v7.widget.RecyclerView.ViewHolder
 
 abstract class PagingAdapter<T, VH : ViewHolder>(
-    protected open val dataSource: DataSource<T>
+        protected open val dataSource: DataSource<T>
 ) : Adapter<VH>() {
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {

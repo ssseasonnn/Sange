@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
 
     class Config(
-        val useDiff: Boolean = true
+            val useDiff: Boolean = true
     )
 
     protected open val dataStorage = DataStorage<T>()

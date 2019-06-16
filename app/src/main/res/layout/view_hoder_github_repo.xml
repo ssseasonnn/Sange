@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="1dp"
-    android:background="@color/colorPrimary">
+    tools:background="@color/colorPrimary">
 
     <ImageView
         android:id="@+id/iv_user_head"

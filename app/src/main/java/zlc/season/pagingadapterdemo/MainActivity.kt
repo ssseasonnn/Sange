@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import zlc.season.pagingadapterdemo.github.GithubRepoSearchActivity
 import zlc.season.pagingadapterdemo.zhihu.DailyActivity
 
 class MainActivity : AppCompatActivity() {

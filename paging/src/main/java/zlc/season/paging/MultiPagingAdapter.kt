@@ -1,7 +1,7 @@
 package zlc.season.paging
 
 abstract class MultiPagingAdapter<T : PagingItem, VH : PagingViewHolder<T>>(dataSource: DataSource<T>) :
-    PagingAdapter<T, VH>(dataSource) {
+        PagingAdapter<T, VH>(dataSource) {
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.onBind(getItem(position))

@@ -1,4 +1,4 @@
-package zlc.season.pagingadapterdemo
+package zlc.season.pagingadapterdemo.github
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_github_repo_search.*
+import zlc.season.pagingadapterdemo.R
 
 
 class GithubRepoSearchActivity : AppCompatActivity() {
@@ -24,12 +25,6 @@ class GithubRepoSearchActivity : AppCompatActivity() {
 
         recycler_view.layoutManager = LinearLayoutManager(this)
         recycler_view.adapter = GithubRepoAdapter(viewModel.dataSource)
-
-        search_btn.setOnClickListener {
-            viewModel.search(editText.text.toString())
-        }
-
-        viewModel.refresh()
 
         viewModel.refreshStatus.observe(this, Observer {
             it?.let {
