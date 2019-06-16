@@ -1,9 +1,9 @@
 package zlc.season.pagingadapterdemo.zhihu
 
-import zlc.season.paging.ViewType
+import zlc.season.paging.PagingItem
 
 
-interface DailyItem : ViewType {
+interface DailyItem : PagingItem {
     fun getTopStorys(): List<DailyResp.TopStory>
 
     fun getStory(): DailyResp.Story

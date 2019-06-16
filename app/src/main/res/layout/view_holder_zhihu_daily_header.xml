@@ -5,7 +5,7 @@
     android:layout_height="wrap_content">
 
     <com.youth.banner.Banner
-        android:id="@+id/banner"
+        android:id="@+id/id_banner"
         android:layout_width="0dp"
         android:layout_height="200dp"
         app:layout_constraintEnd_toEndOf="parent"

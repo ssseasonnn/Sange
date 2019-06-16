@@ -9,10 +9,10 @@ import java.util.*
 
 class PagingListDiffer<T> {
     var adapter: RecyclerView.Adapter<*>? = null
+
     private val diffCallback = PagingDiffCallback<T>()
 
     private var list = emptyList<T>()
-
     private var currentList = emptyList<T>()
 
     fun size() = currentList.size
@@ -46,7 +46,6 @@ class PagingListDiffer<T> {
             currentList = emptyList()
             // notify last, after list is updated
             adapter?.notifyItemRangeRemoved(0, countRemoved)
-//            updateCallback?.onRemoved(0, countRemoved)
             return
         }
 
@@ -54,8 +53,6 @@ class PagingListDiffer<T> {
         if (list.isEmpty()) {
             list = newList
             currentList = Collections.unmodifiableList(newList)
-            // notify last, after list is updated
-//            updateCallback?.onInserted(0, newList.size)
             adapter?.notifyItemRangeInserted(0, newList.size)
             return
         }
@@ -63,7 +60,6 @@ class PagingListDiffer<T> {
         val oldList = list
 
         ioThread {
-            log("diff start")
             val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
                 override fun getOldListSize(): Int {
                     return oldList.size
@@ -74,27 +70,21 @@ class PagingListDiffer<T> {
                 }
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val isSame = diffCallback.areItemsTheSame(
+                    return diffCallback.areItemsTheSame(
                         oldList[oldItemPosition], newList[newItemPosition]
                     )
-
-                    return isSame
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    val isSame = diffCallback.areContentsTheSame(
+                    return diffCallback.areContentsTheSame(
                         oldList[oldItemPosition], newList[newItemPosition]
                     )
-
-                    return isSame
                 }
 
                 override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
-                    val payload = diffCallback.getChangePayload(
+                    return diffCallback.getChangePayload(
                         oldList[oldItemPosition], newList[newItemPosition]
                     )
-
-                    return payload
                 }
             })
 
@@ -102,7 +92,6 @@ class PagingListDiffer<T> {
                 if (mMaxScheduledGeneration == runGeneration) {
                     latchList(newList, result)
                 }
-                log("diff stop")
             }
         }
     }

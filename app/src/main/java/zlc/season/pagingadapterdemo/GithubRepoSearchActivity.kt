@@ -26,8 +26,7 @@ class GithubRepoSearchActivity : AppCompatActivity() {
         recycler_view.adapter = GithubRepoAdapter(viewModel.dataSource)
 
         search_btn.setOnClickListener {
-//            viewModel.search(editText.text.toString())
-            viewModel.remove()
+            viewModel.search(editText.text.toString())
         }
 
         viewModel.refresh()

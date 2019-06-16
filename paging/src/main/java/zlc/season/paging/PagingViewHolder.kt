@@ -8,8 +8,12 @@ import kotlinx.android.extensions.LayoutContainer
 open class PagingViewHolder<T>(parent: ViewGroup, res: Int) :
     RecyclerView.ViewHolder(parent.inflate(res)), LayoutContainer {
 
-    override val containerView: View get() = itemView
+    override val containerView: View = itemView
 
     open fun onBind(t: T) {
+    }
+
+    open fun onBindPayload(payload: MutableList<Any>) {
+
     }
 }

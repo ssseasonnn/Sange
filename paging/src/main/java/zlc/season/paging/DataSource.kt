@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
 
     class Config(
-            val useDiff: Boolean = true
+        val useDiff: Boolean = true
     )
 
     protected open val dataStorage = DataStorage<T>()
@@ -138,9 +138,11 @@ open class DataSource<T> {
      */
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
-    internal fun setAdapter(adapter: RecyclerView.Adapter<*>) {
+    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         pagingListDiffer.adapter = adapter
-        invalidate()
+        if (adapter != null) {
+            invalidate()
+        }
     }
 
     internal fun getItemCount() = size()

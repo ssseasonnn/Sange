@@ -4,7 +4,8 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.view_hoder_github_repo.view.*
+import kotlinx.android.extensions.LayoutContainer
+import kotlinx.android.synthetic.main.view_hoder_github_repo.*
 import zlc.season.paging.DataSource
 import zlc.season.paging.PagingAdapter
 import zlc.season.pagingadapterdemo.GithubRepositoryResp.GithubRepository
@@ -14,7 +15,7 @@ fun ViewGroup.inflate(res: Int, attach: Boolean = false): View {
 }
 
 class GithubRepoAdapter(dataSource: DataSource<GithubRepository>) :
-        PagingAdapter<GithubRepository, GithubRepoAdapter.GithubRepoViewHolder>(dataSource) {
+    PagingAdapter<GithubRepository, GithubRepoAdapter.GithubRepoViewHolder>(dataSource) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GithubRepoViewHolder {
         return GithubRepoViewHolder.create(parent, R.layout.view_hoder_github_repo)
@@ -25,9 +26,11 @@ class GithubRepoAdapter(dataSource: DataSource<GithubRepository>) :
     }
 
 
-    class GithubRepoViewHolder : RecyclerView.ViewHolder {
+    class GithubRepoViewHolder(parent: ViewGroup, res: Int) :
+        RecyclerView.ViewHolder(parent.inflate(res)),
+        LayoutContainer {
 
-        constructor(parent: ViewGroup, res: Int) : super(parent.inflate(res))
+        override val containerView: View = itemView
 
         companion object {
             fun create(vararg params: Any): GithubRepoViewHolder {
@@ -36,7 +39,7 @@ class GithubRepoAdapter(dataSource: DataSource<GithubRepository>) :
         }
 
         fun onBind(githubRepository: GithubRepository) {
-            itemView.tv_title.text = githubRepository.name
+            tv_title.text = githubRepository.name
         }
     }
 }

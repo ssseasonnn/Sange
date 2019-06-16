@@ -1,14 +1,18 @@
 package zlc.season.paging
 
-import android.view.ViewGroup
+abstract class MultiPagingAdapter<T : PagingItem, VH : PagingViewHolder<T>>(dataSource: DataSource<T>) :
+    PagingAdapter<T, VH>(dataSource) {
 
-class MultiPagingAdapter(dataSource: DataSource<PagingItem>) : PagingAdapter<PagingItem, PagingViewHolder<PagingItem>>(dataSource) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagingViewHolder<PagingItem> {
-        return PagingViewHolder(parent, viewType)
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        holder.onBind(getItem(position))
     }
 
-    override fun onBindViewHolder(holder: PagingViewHolder<PagingItem>, position: Int) {
-        holder.onBind(getItem(position))
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+        } else {
+            holder.onBindPayload(payloads)
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
