@@ -22,4 +22,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/btn_zhihu_daily"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="zhihu daily"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_search_repo" />
+
 </android.support.constraint.ConstraintLayout>

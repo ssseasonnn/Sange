@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import zlc.season.pagingadapterdemo.zhihu.DailyActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -13,6 +14,10 @@ class MainActivity : AppCompatActivity() {
 
         btn_search_repo.setOnClickListener {
             startActivity(Intent(this, GithubRepoSearchActivity::class.java))
+        }
+
+        btn_zhihu_daily.setOnClickListener {
+            startActivity(Intent(this, DailyActivity::class.java))
         }
     }
 }

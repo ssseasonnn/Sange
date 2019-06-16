@@ -19,7 +19,7 @@ open class DataSource<T> {
 
     private val stateMap = mutableMapOf<Direction, FetchingState>()
 
-    private val invalid = AtomicBoolean(false)
+    protected val invalid = AtomicBoolean(false)
 
     private var pagingListDiffer = PagingListDiffer<T>()
 
@@ -139,7 +139,7 @@ open class DataSource<T> {
 
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
-    private fun dispatchLoadInitial() {
+    open fun dispatchLoadInitial() {
         log("load initial start")
         ioThread {
             loadInitial(object : LoadCallback<T> {

@@ -1,9 +1,49 @@
 package zlc.season.paging
 
+import zlc.season.ironbranch.ioThread
+import zlc.season.ironbranch.mainThread
+
 open class MultiDataSource<T> : DataSource<T>() {
 
-    override val dataStorage: MultiDataStorage<T>
-        get() = MultiDataStorage()
+    override val dataStorage: MultiDataStorage<T> = MultiDataStorage()
+
+    interface MultiLoadCallback<T> : LoadCallback<T> {
+        fun setHeaderResult(header: List<T>?)
+    }
+
+    override fun dispatchLoadInitial() {
+        log("load initial start")
+        ioThread {
+            loadInitial(object : MultiLoadCallback<T> {
+                override fun setHeaderResult(header: List<T>?) {
+                    mainThread {
+                        if (header != null) {
+                            dataStorage.addHeaders(header)
+                        }
+                    }
+                }
+
+                override fun setResult(data: List<T>?) {
+                    mainThread {
+                        if (data != null) {
+                            dataStorage.addAll(data)
+                            notifySubmitList(true)
+                        }
+                        invalid.compareAndSet(true, false)
+
+                        setFetchingState(Direction.BEFORE, FetchingState.READY_TO_FETCH)
+                        setFetchingState(Direction.AFTER, FetchingState.READY_TO_FETCH)
+
+                        log("load initial stop")
+                    }
+                }
+            })
+        }
+    }
+
+    override fun loadInitial(loadCallback: LoadCallback<T>) {
+        super.loadInitial(loadCallback)
+    }
 
     /**
      * Header functions

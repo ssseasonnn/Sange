@@ -1,6 +1,6 @@
 package zlc.season.paging
 
-class MultiDataStorage<T> : DataStorage<T>() {
+open class MultiDataStorage<T> : DataStorage<T>() {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
 
