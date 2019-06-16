@@ -1,6 +1,6 @@
 package zlc.season.paging
 
-import android.support.v7.util.ListUpdateCallback
+import android.support.v7.widget.RecyclerView
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.concurrent.atomic.AtomicBoolean
@@ -15,7 +15,7 @@ open class DataSource<T> {
         BEFORE, AFTER
     }
 
-    protected val dataStorage by lazy { onCreateStorage() }
+    protected open val dataStorage = DataStorage<T>()
 
     private val stateMap = mutableMapOf<Direction, FetchingState>()
 
@@ -28,39 +28,107 @@ open class DataSource<T> {
         stateMap[Direction.AFTER] = FetchingState()
     }
 
-    fun setListCallback(callback: ListUpdateCallback) {
-        pagingListDiffer.updateCallback = callback
-        pagingListDiffer.submitList(dataStorage.all())
 
+    fun setAdapter(adapter: RecyclerView.Adapter<*>) {
+        pagingListDiffer.adapter = adapter
     }
 
-    protected fun notifySubmitList() {
-        pagingListDiffer.submitList(dataStorage.all())
+    protected fun notifySubmitList(initial: Boolean = false) {
+        pagingListDiffer.submitList(dataStorage.all(), initial)
     }
 
 
     /**
-     * Make this data source invalid and reload initial
+     * Invalidate data source.
      */
-    fun invalidate(clear: Boolean = true) {
-        assertMainThread {
+    fun invalidate() {
+        ensureMainThread {
             if (invalid.compareAndSet(false, true)) {
-                if (clear) {
-                    dataStorage.clear()
-                }
+                dataStorage.clear()
                 dispatchLoadInitial()
             }
         }
     }
 
-    fun getItemCount() = pagingListDiffer.size()
+    /**
+     * Data functions
+     */
+    fun clear() {
+        ensureMainThread {
+            dataStorage.clear()
+            notifySubmitList()
+        }
+    }
 
-    fun getItem(position: Int): T {
+    fun add(t: T, position: Int = -1) {
+        ensureMainThread {
+            if (position > -1) {
+                dataStorage.add(position, t)
+            } else {
+                dataStorage.add(t)
+            }
+
+            notifySubmitList()
+        }
+    }
+
+    fun addAll(list: List<T>, position: Int = -1) {
+        ensureMainThread {
+            if (position > -1) {
+                dataStorage.addAll(position, list)
+            } else {
+                dataStorage.addAll(list)
+            }
+            notifySubmitList()
+        }
+    }
+
+    fun removeAt(position: Int) {
+        ensureMainThread {
+            dataStorage.removeAt(position)
+            notifySubmitList()
+        }
+    }
+
+    fun remove(t: T) {
+        ensureMainThread {
+            val index = dataStorage.indexOf(t)
+            if (index != -1) {
+                dataStorage.remove(t)
+                notifySubmitList()
+            } else {
+                throw IllegalArgumentException("Wrong index!")
+            }
+        }
+    }
+
+    fun set(old: T, new: T) {
+        ensureMainThread {
+            dataStorage.set(old, new)
+            notifySubmitList()
+        }
+    }
+
+    fun set(index: Int, new: T) {
+        ensureMainThread {
+            dataStorage.set(index, new)
+            notifySubmitList()
+        }
+    }
+
+    fun get(position: Int): T {
         return pagingListDiffer.get(position)
     }
 
-    open fun onCreateStorage(): Storage<T> {
-        return DataStorage()
+    fun size(): Int {
+        return pagingListDiffer.size()
+    }
+
+    internal fun getItemCount() = size()
+
+    internal fun getItem(position: Int): T {
+        dispatchLoadAround(position)
+        return get(position)
     }
 
     open fun loadBefore(loadCallback: LoadCallback<T>) {
@@ -72,41 +140,51 @@ open class DataSource<T> {
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
 
     private fun dispatchLoadInitial() {
-        log("load initial")
+        log("load initial start")
         ioThread {
             loadInitial(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
                     mainThread {
-                        log("load initial success")
                         if (data != null) {
                             dataStorage.addAll(data)
-                            notifySubmitList()
+                            notifySubmitList(true)
                         }
                         invalid.compareAndSet(true, false)
 
                         setFetchingState(Direction.BEFORE, FetchingState.READY_TO_FETCH)
                         setFetchingState(Direction.AFTER, FetchingState.READY_TO_FETCH)
+
+                        log("load initial stop")
                     }
                 }
             })
         }
     }
 
-    fun dispatchLoadAround(direction: Direction) {
+    var lastPosition = -1
+
+    fun dispatchLoadAround(position: Int = lastPosition) {
+        lastPosition = position
+
+        log("dispatch load around")
         if (isInvalid()) return
 
-        if (direction == Direction.AFTER) {
+        if (position == getItemCount() - 1) {
+            log("load after start")
             scheduleFetching(::loadAfter, Direction.AFTER) {
                 dataStorage.addAll(it)
                 notifySubmitList()
+                log("load after stop")
             }
             return
         }
 
-        if (direction == Direction.BEFORE) {
+        if (position == 0) {
+            log("load before start")
             scheduleFetching(::loadBefore, Direction.BEFORE) {
                 dataStorage.addAll(0, it)
                 notifySubmitList()
+                log("load before stop")
             }
             return
         }

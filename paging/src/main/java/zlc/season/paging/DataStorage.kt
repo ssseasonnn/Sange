@@ -1,37 +1,63 @@
 package zlc.season.paging
 
-open class DataStorage<T> : Storage<T> {
-    protected val data = mutableListOf<T>()
+open class DataStorage<T> {
+    private val data = mutableListOf<T>()
 
-    override fun all(): List<T> {
+    open fun all(): List<T> {
         return data.toList()
     }
 
-    override fun clear() = data.clear()
+    open fun clear() = data.clear()
 
-    override fun addAll(t: List<T>) {
+    open fun addAll(t: List<T>) {
         data.addAll(t)
     }
 
-    override fun addAll(position: Int, t: List<T>) {
+    open fun addAll(position: Int, t: List<T>) {
         data.addAll(position, t)
     }
 
-    override fun add(t: T) {
+    open fun add(t: T) {
         data.add(t)
     }
 
-    override fun add(position: Int, t: T) = data.add(position, t)
-
-    override fun removeAt(position: Int) {
-        data.removeAt(position)
+    open fun add(position: Int, t: T) {
+        try {
+            data.add(position, t)
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
     }
 
-    override fun remove(t: T) {
+    open fun removeAt(position: Int) {
+        try {
+            data.removeAt(position)
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    open fun remove(t: T) {
         data.remove(t)
     }
 
-    override fun indexOf(t: T): Int {
+    open fun set(old: T, new: T) {
+        try {
+            data[indexOf(old)] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    open fun set(index: Int, new: T) {
+        try {
+            data[index] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    open fun indexOf(t: T): Int {
         return data.indexOf(t)
     }
 }

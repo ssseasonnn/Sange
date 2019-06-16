@@ -1,49 +1,23 @@
 package zlc.season.paging
 
-class MutableDataStorage<T>(val storage: Storage<T>) : Storage<T> {
+class MultiDataStorage<T> : DataStorage<T>() {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
 
     override fun all(): List<T> {
         val result = mutableListOf<T>()
         result.addAll(headers)
-        result.addAll(storage.all())
+        result.addAll(super.all())
         result.addAll(footers)
         return result
     }
 
     override fun clear() {
-        storage.clear()
-        clearOf(headers, footers)
+        super.clear()
+        headers.clear()
+        footers.clear()
     }
 
-    override fun addAll(t: List<T>) {
-        storage.addAll(t)
-    }
-
-    override fun addAll(position: Int, t: List<T>) {
-        storage.addAll(position, t)
-    }
-
-    override fun add(t: T) {
-        storage.add(t)
-    }
-
-    override fun add(position: Int, t: T) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun removeAt(position: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun remove(t: T) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun indexOf(t: T): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
     /**
      * Header functions
@@ -62,6 +36,22 @@ class MutableDataStorage<T>(val storage: Storage<T>) : Storage<T> {
 
     fun indexHeaderOf(t: T) = headers.indexOf(t)
 
+    fun setHeader(old: T, new: T) {
+        try {
+            headers[indexOf(old)] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    fun setHeader(index: Int, new: T) {
+        try {
+            headers[index] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
 
     /**
      * Footer functions
@@ -79,4 +69,20 @@ class MutableDataStorage<T>(val storage: Storage<T>) : Storage<T> {
     fun removeFooter(t: T) = footers.remove(t)
 
     fun indexFooterOf(t: T) = footers.indexOf(t)
+
+    fun setFooter(old: T, new: T) {
+        try {
+            footers[indexOf(old)] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
+
+    fun setFooter(index: Int, new: T) {
+        try {
+            footers[index] = new
+        } catch (t: Throwable) {
+            t.printStackTrace()
+        }
+    }
 }

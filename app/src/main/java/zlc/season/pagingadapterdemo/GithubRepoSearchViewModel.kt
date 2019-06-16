@@ -16,4 +16,16 @@ class GithubRepoSearchViewModel : ViewModel() {
         dataSource.invalidate()
     }
 
+    var i = -1
+    var j = 0
+
+    fun remove() {
+//        dataSource.removeAt(0)
+
+        val old = dataSource.get(j++)
+        i--
+        val new = old.copy(id = i, name = "id $i")
+        dataSource.set(old, new)
+    }
+
 }

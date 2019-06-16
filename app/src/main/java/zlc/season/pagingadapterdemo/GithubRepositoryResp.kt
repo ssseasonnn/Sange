@@ -8,8 +8,8 @@ data class GithubRepositoryResp(
         val total_count: Int = 0
 ) {
     data class GithubRepository(
-            val name: String = "",
-            val id: Int = 0
+            var name: String = "",
+            var id: Int = 0
     ) : Differ {
         override fun areItemsTheSame(other: Differ): Boolean {
             if (other !is GithubRepository) {

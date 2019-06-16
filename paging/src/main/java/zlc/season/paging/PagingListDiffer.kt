@@ -2,19 +2,18 @@ package zlc.season.paging
 
 import android.annotation.SuppressLint
 import android.support.v7.util.DiffUtil
-import android.support.v7.util.ListUpdateCallback
+import android.support.v7.widget.RecyclerView
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.*
 
 class PagingListDiffer<T> {
-    var updateCallback: ListUpdateCallback? = null
-    private val diffCallback: DiffUtil.ItemCallback<T> = DefaultDiffCallback()
+    var adapter: RecyclerView.Adapter<*>? = null
+    private val diffCallback = PagingDiffCallback<T>()
 
-    private var list: List<T>? = null
+    private var list = emptyList<T>()
 
-    var currentList = emptyList<T>()
-        private set
+    private var currentList = emptyList<T>()
 
     fun size() = currentList.size
 
@@ -23,7 +22,14 @@ class PagingListDiffer<T> {
     // Max generation of currently scheduled runnable
     private var mMaxScheduledGeneration: Int = 0
 
-    fun submitList(newList: List<T>?) {
+
+    fun submitList(newList: List<T>, initial: Boolean = false) {
+        if (initial) {
+            list = newList
+            currentList = Collections.unmodifiableList(newList)
+            adapter?.notifyDataSetChanged()
+        }
+
         if (newList === list) {
             // nothing to do
             return
@@ -32,31 +38,35 @@ class PagingListDiffer<T> {
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = ++mMaxScheduledGeneration
 
-        // fast simple remove all
-        if (newList == null) {
+        // initial simple remove all
+        if (newList.isEmpty()) {
 
-            val countRemoved = list!!.size
-            list = null
+            val countRemoved = list.size
+            list = emptyList()
             currentList = emptyList()
             // notify last, after list is updated
-            updateCallback?.onRemoved(0, countRemoved)
+            adapter?.notifyItemRangeRemoved(0, countRemoved)
+//            updateCallback?.onRemoved(0, countRemoved)
             return
         }
 
-        // fast simple first insert
-        if (list == null) {
+        // initial simple first insert
+        if (list.isEmpty()) {
             list = newList
             currentList = Collections.unmodifiableList(newList)
             // notify last, after list is updated
-            updateCallback?.onInserted(0, newList.size)
+//            updateCallback?.onInserted(0, newList.size)
+            adapter?.notifyItemRangeInserted(0, newList.size)
             return
         }
 
         val oldList = list
+
         ioThread {
+            log("diff start")
             val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
                 override fun getOldListSize(): Int {
-                    return oldList!!.size
+                    return oldList.size
                 }
 
                 override fun getNewListSize(): Int {
@@ -64,21 +74,27 @@ class PagingListDiffer<T> {
                 }
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return diffCallback.areItemsTheSame(
-                            oldList!![oldItemPosition], newList[newItemPosition]
+                    val isSame = diffCallback.areItemsTheSame(
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
+
+                    return isSame
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return diffCallback.areContentsTheSame(
-                            oldList!![oldItemPosition], newList[newItemPosition]
+                    val isSame = diffCallback.areContentsTheSame(
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
+
+                    return isSame
                 }
 
                 override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
-                    return diffCallback.getChangePayload(
-                            oldList!![oldItemPosition], newList[newItemPosition]
+                    val payload = diffCallback.getChangePayload(
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
+
+                    return payload
                 }
             })
 
@@ -86,6 +102,7 @@ class PagingListDiffer<T> {
                 if (mMaxScheduledGeneration == runGeneration) {
                     latchList(newList, result)
                 }
+                log("diff stop")
             }
         }
     }
@@ -94,12 +111,12 @@ class PagingListDiffer<T> {
         list = newList
         // notify last, after list is updated
         currentList = Collections.unmodifiableList(newList)
-        updateCallback?.let {
-            diffResult.dispatchUpdatesTo(it)
+        adapter?.let {
+            diffResult.dispatchUpdatesTo(adapter)
         }
     }
 
-    class DefaultDiffCallback<T> : DiffUtil.ItemCallback<T>() {
+    class PagingDiffCallback<T> : DiffUtil.ItemCallback<T>() {
         override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areItemsTheSame(newItem)

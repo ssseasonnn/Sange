@@ -1,6 +1,5 @@
 package zlc.season.paging
 
-import android.support.v7.util.AdapterListUpdateCallback
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.Adapter
 
@@ -10,17 +9,7 @@ abstract class PagingAdapter<T, VH : RecyclerView.ViewHolder>(
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
-        recyclerView.addOnScrollListener(
-            PagingScrollListener(
-                onReachStart = {
-                    log("reach start")
-                    dataSource.dispatchLoadAround(DataSource.Direction.BEFORE)
-                }, onReachEnd = {
-                    log("reach end")
-                    dataSource.dispatchLoadAround(DataSource.Direction.AFTER)
-                })
-        )
-        dataSource.setListCallback(AdapterListUpdateCallback(this))
+        dataSource.setAdapter(this)
     }
 
     open fun getItem(position: Int): T {

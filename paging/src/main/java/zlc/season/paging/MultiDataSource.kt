@@ -1,67 +1,15 @@
 package zlc.season.paging
 
-open class MutableDataSource<T> : DataSource<T>() {
-    override fun onCreateStorage(): MutableDataStorage<T> {
-        return MutableDataStorage(DataStorage())
-    }
+open class MultiDataSource<T> : DataSource<T>() {
 
-    fun clear() {
-        assertMainThread {
-            dataStorage.clear()
-            notifySubmitList()
-        }
-    }
-
-    /**
-     * Data functions
-     */
-    fun add(t: T, position: Int = -1) {
-        assertMainThread {
-            if (position > -1) {
-                dataStorage.add(position, t)
-            } else {
-                dataStorage.add(t)
-            }
-
-            notifySubmitList()
-        }
-    }
-
-    fun addAll(list: List<T>, position: Int = -1) {
-        assertMainThread {
-            if (position > -1) {
-                dataStorage.addAll(position, list)
-            } else {
-                dataStorage.addAll(list)
-            }
-            notifySubmitList()
-        }
-    }
-
-    fun removeAt(position: Int) {
-        assertMainThread {
-            dataStorage.removeAt(position)
-            notifySubmitList()
-        }
-    }
-
-    fun remove(t: T) {
-        assertMainThread {
-            val index = dataStorage.indexOf(t)
-            if (index != -1) {
-                dataStorage.remove(t)
-                notifySubmitList()
-            } else {
-                throw IllegalArgumentException("Wrong index!")
-            }
-        }
-    }
+    override val dataStorage: MultiDataStorage<T>
+        get() = MultiDataStorage()
 
     /**
      * Header functions
      */
     fun addHeader(t: T, position: Int = -1) {
-        assertMainThread {
+        ensureMainThread {
             if (position > -1) {
                 dataStorage.addHeader(position, t)
             } else {
@@ -72,7 +20,7 @@ open class MutableDataSource<T> : DataSource<T>() {
     }
 
     fun addAllHeaders(list: List<T>, position: Int = -1) {
-        assertMainThread {
+        ensureMainThread {
             if (position > -1) {
                 dataStorage.addHeaders(position, list)
             } else {
@@ -83,14 +31,14 @@ open class MutableDataSource<T> : DataSource<T>() {
     }
 
     fun removeHeaderAt(position: Int) {
-        assertMainThread {
+        ensureMainThread {
             dataStorage.removeHeaderAt(position)
             notifySubmitList()
         }
     }
 
     fun removeHeader(t: T) {
-        assertMainThread {
+        ensureMainThread {
             val index = dataStorage.indexHeaderOf(t)
             if (index != -1) {
                 dataStorage.removeHeader(t)
@@ -101,11 +49,25 @@ open class MutableDataSource<T> : DataSource<T>() {
         }
     }
 
+    fun setHeader(old: T, new: T) {
+        ensureMainThread {
+            dataStorage.setHeader(old, new)
+            notifySubmitList()
+        }
+    }
+
+    fun setHeader(index: Int, new: T) {
+        ensureMainThread {
+            dataStorage.setHeader(index, new)
+            notifySubmitList()
+        }
+    }
+
     /**
      * Footer functions
      */
     fun addFooter(t: T, position: Int = -1) {
-        assertMainThread {
+        ensureMainThread {
             if (position > -1) {
                 dataStorage.addFooter(position, t)
             } else {
@@ -116,7 +78,7 @@ open class MutableDataSource<T> : DataSource<T>() {
     }
 
     fun addAllFooters(list: List<T>, position: Int = -1) {
-        assertMainThread {
+        ensureMainThread {
             if (position > -1) {
                 dataStorage.addFooters(position, list)
             } else {
@@ -127,14 +89,14 @@ open class MutableDataSource<T> : DataSource<T>() {
     }
 
     fun removeFooterAt(position: Int) {
-        assertMainThread {
+        ensureMainThread {
             dataStorage.removeFooterAt(position)
             notifySubmitList()
         }
     }
 
     fun removeFooter(t: T) {
-        assertMainThread {
+        ensureMainThread {
             val index = dataStorage.indexFooterOf(t)
             if (index != -1) {
                 dataStorage.removeFooter(t)
@@ -142,6 +104,20 @@ open class MutableDataSource<T> : DataSource<T>() {
             } else {
                 throw IllegalArgumentException("Wrong index!")
             }
+        }
+    }
+
+    fun setFooter(old: T, new: T) {
+        ensureMainThread {
+            dataStorage.setFooter(old, new)
+            notifySubmitList()
+        }
+    }
+
+    fun setFooter(index: Int, new: T) {
+        ensureMainThread {
+            dataStorage.setFooter(index, new)
+            notifySubmitList()
         }
     }
 }
