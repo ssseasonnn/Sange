@@ -1,8 +1,10 @@
 package zlc.season.pagingadapterdemo.zhihu
 
+import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.view_holder_zhihu_daily_header.*
-import kotlinx.android.synthetic.main.view_holder_zhihu_daily_item.view.*
+import kotlinx.android.synthetic.main.view_holder_zhihu_daily_item.*
 import zlc.season.paging.MultiDataSource
 import zlc.season.paging.MultiPagingAdapter
 import zlc.season.paging.PagingViewHolder
@@ -10,20 +12,25 @@ import zlc.season.pagingadapterdemo.R
 
 
 class DailyAdapter(dataSource: MultiDataSource<DailyItem>) :
-        MultiPagingAdapter<DailyItem, PagingViewHolder<DailyItem>>(dataSource) {
+    MultiPagingAdapter<DailyItem, PagingViewHolder<DailyItem>>(dataSource) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagingViewHolder<DailyItem> {
         if (viewType == 0) {
-            return DailyNormalViewHolder(parent, R.layout.view_holder_zhihu_daily_item)
+            return DailyNormalViewHolder(inflate(parent, R.layout.view_holder_zhihu_daily_item))
         } else {
-            return DailyHeaderViewHolder(parent, R.layout.view_holder_zhihu_daily_header)
+            return DailyHeaderViewHolder(inflate(parent, R.layout.view_holder_zhihu_daily_header))
         }
+    }
+
+
+    fun inflate(parent: ViewGroup, res: Int): View {
+        return LayoutInflater.from(parent.context).inflate(res, parent, false)
     }
 }
 
 
-class DailyHeaderViewHolder(parent: ViewGroup, res: Int) :
-        PagingViewHolder<DailyItem>(parent, res) {
+class DailyHeaderViewHolder(containerView: View) :
+    PagingViewHolder<DailyItem>(containerView) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)
@@ -39,12 +46,12 @@ class DailyHeaderViewHolder(parent: ViewGroup, res: Int) :
     }
 }
 
-class DailyNormalViewHolder(parent: ViewGroup, res: Int) :
-        PagingViewHolder<DailyItem>(parent, res) {
+class DailyNormalViewHolder(containerView: View) :
+    PagingViewHolder<DailyItem>(containerView) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)
         val item = t.getStory()
-        containerView.tv_content.text = item.title
+        tv_content.text = item.title
     }
 }
