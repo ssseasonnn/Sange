@@ -3,6 +3,8 @@ package zlc.season.sangedemo.zhihu
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.view_holder_zhihu_daily_header.*
+import kotlinx.android.synthetic.main.view_holder_zhihu_daily_item.*
 import zlc.season.sange.MultiDataSource
 import zlc.season.sange.MultiPagingAdapter
 import zlc.season.sange.PagingViewHolder
