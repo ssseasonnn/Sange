@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="zlc.season.pagingadapterdemo">
+    package="zlc.season.sangedemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -16,16 +16,16 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".MainActivity">
+        <activity android:name="zlc.season.sangedemo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".github.GithubRepoSearchActivity" />
+        <activity android:name="zlc.season.sangedemo.github.GithubRepoSearchActivity" />
 
-        <activity android:name=".zhihu.DailyActivity" />
+        <activity android:name="zlc.season.sangedemo.zhihu.DailyActivity" />
     </application>
 
 </manifest>

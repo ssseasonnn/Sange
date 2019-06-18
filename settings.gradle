@@ -1,1 +1,1 @@
-include ':app', ':paging'
+include ':app', ':sange'
