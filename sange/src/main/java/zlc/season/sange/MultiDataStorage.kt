@@ -3,12 +3,18 @@ package zlc.season.sange
 open class MultiDataStorage<T> : DataStorage<T>() {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
+    private var status: T? = null
 
     override fun all(): List<T> {
         val result = mutableListOf<T>()
         result.addAll(headers)
         result.addAll(super.all())
         result.addAll(footers)
+
+        status?.let {
+            result.add(it)
+        }
+
         return result
     }
 
@@ -16,6 +22,7 @@ open class MultiDataStorage<T> : DataStorage<T>() {
         super.clear()
         headers.clear()
         footers.clear()
+        status = null
     }
 
 
@@ -75,4 +82,15 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     }
 
     fun clearFooter() = footers.clear()
+
+    /**
+     * Status functions
+     */
+    fun setStatus(t: T) {
+        status = t
+    }
+
+    fun getStatus(): T? {
+        return status
+    }
 }

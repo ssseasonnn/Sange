@@ -215,6 +215,10 @@ open class DataSource<T> {
         }
     }
 
+    protected fun setStatus(){
+
+    }
+
     private fun isInvalid(): Boolean {
         return invalid.get()
     }

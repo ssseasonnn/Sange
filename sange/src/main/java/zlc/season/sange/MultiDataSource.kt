@@ -161,4 +161,11 @@ open class MultiDataSource<T> : DataSource<T>() {
             }
         }
     }
+
+    fun setStatus(newState: T) {
+        ensureMainThread {
+            dataStorage.setStatus(newState)
+            notifySubmitList()
+        }
+    }
 }

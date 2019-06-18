@@ -1,5 +1,8 @@
 package zlc.season.sange
 
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.RecyclerView.NO_POSITION
+
 abstract class MultiPagingAdapter<T : PagingItem, VH : PagingViewHolder<T>>(dataSource: DataSource<T>) :
     PagingAdapter<T, VH>(dataSource) {
 
@@ -20,14 +23,28 @@ abstract class MultiPagingAdapter<T : PagingItem, VH : PagingViewHolder<T>>(data
     }
 
     override fun onViewAttachedToWindow(holder: VH) {
-        holder.onAttach(getItem(holder.adapterPosition))
+        holder.checkPosition {
+            onAttach(getItem(it))
+        }
     }
 
     override fun onViewDetachedFromWindow(holder: VH) {
-        holder.onDetach(getItem(holder.adapterPosition))
+        holder.checkPosition {
+            onDetach(getItem(it))
+        }
     }
 
     override fun onViewRecycled(holder: VH) {
-        holder.onRecycled(getItem(holder.adapterPosition))
+        holder.checkPosition {
+            onRecycled(getItem(it))
+        }
+    }
+
+    private fun <VH : RecyclerView.ViewHolder> VH.checkPosition(block: VH.(Int) -> Unit) {
+        this.adapterPosition.let {
+            if (it != NO_POSITION) {
+                this.block(it)
+            }
+        }
     }
 }
