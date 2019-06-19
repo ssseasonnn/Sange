@@ -19,7 +19,7 @@ abstract class SangeAdapter<T : Any, VH : ViewHolder>(
     }
 
     open fun getItem(position: Int): T {
-        return dataSource.getItem(position)
+        return dataSource.getItemInner(position)
     }
 
     override fun getItemCount(): Int {

@@ -16,16 +16,13 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name="zlc.season.sangedemo.MainActivity">
+        <activity android:name=".demo.DemoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="zlc.season.sangedemo.github.GithubRepoSearchActivity" />
-
-        <activity android:name="zlc.season.sangedemo.zhihu.DailyActivity" />
     </application>
 
 </manifest>

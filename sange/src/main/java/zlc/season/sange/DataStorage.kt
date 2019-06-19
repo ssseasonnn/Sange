@@ -1,77 +1,95 @@
 package zlc.season.sange
 
 open class DataStorage<T> {
-    private val data = mutableListOf<T>()
+    protected val items = mutableListOf<T>()
+    protected var status: T? = null
 
-    open fun all(): List<T> {
+    open fun toList(): List<T> {
         val result = mutableListOf<T>()
-        result.addAll(data)
+        result.addAll(items)
+
+        status?.let {
+            result.add(it)
+        }
+
         return result
     }
 
     open fun clearAll() {
-        data.clear()
+        items.clear()
+        status = null
     }
 
-    fun clear() {
-        data.clear()
+    fun clearItem() {
+        items.clear()
     }
 
-    fun size(): Int {
-        return data.size
+    fun itemSize(): Int {
+        return items.size
     }
 
-    fun addAll(t: List<T>) {
-        data.addAll(t)
+    fun addItems(t: List<T>) {
+        items.addAll(t)
     }
 
-    fun addAll(position: Int, t: List<T>) {
-        data.addAll(position, t)
+    fun addItems(position: Int, t: List<T>) {
+        items.addAll(position, t)
     }
 
-    fun add(t: T) {
-        data.add(t)
+    fun addItem(t: T) {
+        items.add(t)
     }
 
-    fun add(position: Int, t: T) {
+    fun addItem(position: Int, t: T) {
         try {
-            data.add(position, t)
+            items.add(position, t)
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
 
-    fun removeAt(position: Int) {
+    fun removeItemAt(position: Int) {
         try {
-            data.removeAt(position)
+            items.removeAt(position)
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
 
-    fun remove(t: T) {
-        data.remove(t)
+    fun removeItem(t: T) {
+        items.remove(t)
     }
 
-    fun set(old: T, new: T) {
+    fun setItem(old: T, new: T) {
         try {
-            data[indexOf(old)] = new
+            items[indexItemOf(old)] = new
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
 
-    fun set(index: Int, new: T) {
+    fun setItem(index: Int, new: T) {
         try {
-            data[index] = new
+            items[index] = new
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
 
-    fun get(position: Int) = data[position]
+    fun getItem(position: Int) = items[position]
 
-    fun indexOf(t: T): Int {
-        return data.indexOf(t)
+    fun indexItemOf(t: T): Int {
+        return items.indexOf(t)
+    }
+
+    /**
+     *  Set state
+     */
+    fun setState(t: T?) {
+        status = t
+    }
+
+    fun getState(): T? {
+        return status
     }
 }

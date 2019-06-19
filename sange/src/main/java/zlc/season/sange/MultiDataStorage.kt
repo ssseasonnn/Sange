@@ -3,12 +3,11 @@ package zlc.season.sange
 open class MultiDataStorage<T> : DataStorage<T>() {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
-    private var status: T? = null
 
-    override fun all(): List<T> {
+    override fun toList(): List<T> {
         val result = mutableListOf<T>()
         result.addAll(headers)
-        result.addAll(super.all())
+        result.addAll(items)
         result.addAll(footers)
 
         status?.let {
@@ -18,11 +17,10 @@ open class MultiDataStorage<T> : DataStorage<T>() {
         return result
     }
 
-    override fun clear() {
-        super.clear()
+    override fun clearAll() {
+        super.clearAll()
         headers.clear()
         footers.clear()
-        status = null
     }
 
 
@@ -44,7 +42,7 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     fun indexHeaderOf(t: T) = headers.indexOf(t)
 
     fun setHeader(old: T, new: T) {
-        headers[indexOf(old)] = new
+        headers[indexItemOf(old)] = new
     }
 
     fun setHeader(index: Int, new: T) {
@@ -74,7 +72,7 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     fun indexFooterOf(t: T) = footers.indexOf(t)
 
     fun setFooter(old: T, new: T) {
-        footers[indexOf(old)] = new
+        footers[indexItemOf(old)] = new
     }
 
     fun setFooter(index: Int, new: T) {
@@ -84,15 +82,4 @@ open class MultiDataStorage<T> : DataStorage<T>() {
     fun footerSize() = footers.size
 
     fun clearFooter() = footers.clear()
-
-    /**
-     * Status functions
-     */
-    fun setState(t: T) {
-        status = t
-    }
-
-    fun getState(): T? {
-        return status
-    }
 }

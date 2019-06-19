@@ -38,7 +38,7 @@ class SangeListDiffer<T> {
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = ++mMaxScheduledGeneration
 
-        // initial simple remove all
+        // initial simple removeItem toList
         if (newList.isEmpty()) {
 
             val countRemoved = list.size

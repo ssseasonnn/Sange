@@ -7,8 +7,7 @@ open class MultiDataSource<T> : DataSource<T>() {
     override val dataStorage = MultiDataStorage<T>()
 
     /**
-     * Header functions
-     * @param delay If true, the update is delayed
+     * Add header
      */
     fun addHeader(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
@@ -77,6 +76,9 @@ open class MultiDataSource<T> : DataSource<T>() {
         }
     }
 
+    /**
+     * Clear headers
+     */
     fun clearHeader(delay: Boolean = false) {
         ensureMainThread {
             dataStorage.clearHeader()
@@ -86,6 +88,9 @@ open class MultiDataSource<T> : DataSource<T>() {
         }
     }
 
+    /**
+     * Return header size
+     */
     fun headerSize(): Int {
         return assertMainThreadWithResult {
             dataStorage.headerSize()
@@ -93,7 +98,7 @@ open class MultiDataSource<T> : DataSource<T>() {
     }
 
     /**
-     * Footer functions
+     * Add footer
      */
     fun addFooter(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
@@ -174,22 +179,6 @@ open class MultiDataSource<T> : DataSource<T>() {
     fun footerSize(): Int {
         return assertMainThreadWithResult {
             dataStorage.footerSize()
-        }
-    }
-
-    /**
-     * State functions
-     */
-    fun setState(newState: T) {
-        ensureMainThread {
-            dataStorage.setState(newState)
-            notifySubmitList()
-        }
-    }
-
-    fun getState(): T? {
-        return assertMainThreadWithResult {
-            dataStorage.getState()
         }
     }
 }

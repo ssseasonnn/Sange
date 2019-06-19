@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
 
     class Config(
-        val useDiff: Boolean = true
+            val useDiff: Boolean = true
     )
 
     protected open val dataStorage = DataStorage<T>()
@@ -19,13 +19,24 @@ open class DataSource<T> {
     private val invalid = AtomicBoolean(false)
     private var pagingListDiffer = SangeListDiffer<T>()
 
+    private var retryFunc: () -> Unit = {}
+
     /**
-     * Invalidate data source.
+     * Retry fetching.
      */
-    fun invalidate() {
+    fun retry() {
+        retryFunc()
+    }
+
+    /**
+     * Invalidate the current data source.
+     */
+    fun invalidate(clear: Boolean = true) {
         ensureMainThread {
             if (invalid.compareAndSet(false, true)) {
-                dataStorage.clearAll()
+                if (clear) {
+                    dataStorage.clearAll()
+                }
                 dispatchLoadInitial()
             }
         }
@@ -36,10 +47,13 @@ open class DataSource<T> {
      */
     fun notifySubmitList(initial: Boolean = false) {
         ensureMainThread {
-            pagingListDiffer.submitList(dataStorage.all(), initial)
+            pagingListDiffer.submitList(dataStorage.toList(), initial)
         }
     }
 
+    /**
+     * Clear all data from the current data source.
+     */
     fun clearAll(delay: Boolean = false) {
         ensureMainThread {
             dataStorage.clearAll()
@@ -50,23 +64,23 @@ open class DataSource<T> {
     }
 
     /**
-     * Data functions
+     * Clear items, only items.
      */
-    fun clear(delay: Boolean = false) {
+    fun clearItem(delay: Boolean = false) {
         ensureMainThread {
-            dataStorage.clear()
+            dataStorage.clearItem()
             if (!delay) {
                 notifySubmitList()
             }
         }
     }
 
-    fun add(t: T, position: Int = -1, delay: Boolean = false) {
+    fun addItem(t: T, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
-                dataStorage.add(position, t)
+                dataStorage.addItem(position, t)
             } else {
-                dataStorage.add(t)
+                dataStorage.addItem(t)
             }
 
             if (!delay) {
@@ -75,12 +89,12 @@ open class DataSource<T> {
         }
     }
 
-    fun addAll(list: List<T>, position: Int = -1, delay: Boolean = false) {
+    fun addItems(list: List<T>, position: Int = -1, delay: Boolean = false) {
         ensureMainThread {
             if (position > -1) {
-                dataStorage.addAll(position, list)
+                dataStorage.addItems(position, list)
             } else {
-                dataStorage.addAll(list)
+                dataStorage.addItems(list)
             }
             if (!delay) {
                 notifySubmitList()
@@ -88,20 +102,20 @@ open class DataSource<T> {
         }
     }
 
-    fun removeAt(position: Int, delay: Boolean = false) {
+    fun removeItemAt(position: Int, delay: Boolean = false) {
         ensureMainThread {
-            dataStorage.removeAt(position)
+            dataStorage.removeItemAt(position)
             if (!delay) {
                 notifySubmitList()
             }
         }
     }
 
-    fun remove(t: T, delay: Boolean = false) {
+    fun removeItem(t: T, delay: Boolean = false) {
         ensureMainThread {
-            val index = dataStorage.indexOf(t)
+            val index = dataStorage.indexItemOf(t)
             if (index != -1) {
-                dataStorage.remove(t)
+                dataStorage.removeItem(t)
                 if (!delay) {
                     notifySubmitList()
                 }
@@ -111,18 +125,18 @@ open class DataSource<T> {
         }
     }
 
-    fun set(old: T, new: T, delay: Boolean = false) {
+    fun setItem(old: T, new: T, delay: Boolean = false) {
         ensureMainThread {
-            dataStorage.set(old, new)
+            dataStorage.setItem(old, new)
             if (!delay) {
                 notifySubmitList()
             }
         }
     }
 
-    fun set(index: Int, new: T, delay: Boolean = false) {
+    fun setItem(index: Int, new: T, delay: Boolean = false) {
         ensureMainThread {
-            dataStorage.set(index, new)
+            dataStorage.setItem(index, new)
             if (!delay) {
                 notifySubmitList()
             }
@@ -130,34 +144,64 @@ open class DataSource<T> {
     }
 
     /**
-     * return data for [position]
+     * return item for [position]
      */
-    fun get(position: Int): T {
+    fun getItem(position: Int): T {
         return assertMainThreadWithResult {
-            dataStorage.get(position)
+            dataStorage.getItem(position)
         }
     }
 
     /**
-     * return data size
+     * return item size
      */
-    fun size(): Int {
+    fun itemSize(): Int {
         return assertMainThreadWithResult {
-            dataStorage.size()
+            dataStorage.itemSize()
+        }
+    }
+
+    /**
+     * Set state
+     */
+    fun setState(newState: T) {
+        ensureMainThread {
+            dataStorage.setState(newState)
+            notifySubmitList()
+        }
+    }
+
+    fun getState(): T? {
+        return assertMainThreadWithResult {
+            dataStorage.getState()
         }
     }
 
     /**
      * Use [loadInitial] for initial loading, use [LoadCallback] callback
-     * to set the result after loading is complete.
+     * to setItem the result after loading is complete.
      */
     open fun loadInitial(loadCallback: LoadCallback<T>) {}
 
     /**
      * Use [loadAfter] for load next page, use [LoadCallback] callback
-     * to set the result after loading is complete.
+     * to setItem the result after loading is complete.
      */
     open fun loadAfter(loadCallback: LoadCallback<T>) {}
+
+    /**
+     * Return total size, not just the size of items
+     */
+    fun size(): Int {
+        return pagingListDiffer.size()
+    }
+
+    /**
+     * Return data for [position]
+     */
+    fun get(position: Int): T {
+        return pagingListDiffer.get(position)
+    }
 
     internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         pagingListDiffer.adapter = adapter
@@ -166,27 +210,13 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * Get total item count
-     */
-    fun getItemCount(): Int {
-        return pagingListDiffer.size()
+    internal fun getItemCount(): Int {
+        return size()
     }
 
-    /**
-     * Get item for [position]
-     */
-    fun getItem(position: Int): T {
-        return pagingListDiffer.get(position)
-    }
-
-    internal fun innerItemCount(): Int {
-        return getItemCount()
-    }
-
-    internal fun innerItem(position: Int): T {
+    internal fun getItemInner(position: Int): T {
         dispatchLoadAround(position)
-        return getItem(position)
+        return this.get(position)
     }
 
     private fun dispatchLoadInitial() {
@@ -194,15 +224,11 @@ open class DataSource<T> {
             loadInitial(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?, delay: Boolean) {
                     mainThread {
-                        if (!data.isNullOrEmpty()) {
-                            dataStorage.addAll(data)
-                            if (!delay) {
-                                notifySubmitList(true)
-                            }
-                        }
+                        onLoadResult(data, delay)
                         invalid.compareAndSet(true, false)
-
-                        fetchingState.setState(FetchingState.READY_TO_FETCH)
+                        if (data == null) {
+                            retryFunc = { dispatchLoadInitial() }
+                        }
                     }
                 }
             })
@@ -212,40 +238,28 @@ open class DataSource<T> {
     private fun dispatchLoadAround(position: Int) {
         if (isInvalid()) return
 
-        if (position == getItemCount() - 1) {
+        if (position == size() - 1) {
+            if (fetchingState.isNotReady()) {
+                return
+            }
             scheduleLoadAfter()
             return
         }
     }
 
     private fun scheduleLoadAfter() {
-        if (fetchingState.isNotReady()) {
-            return
-        }
-
-        onStateChanged(FetchingState.FETCHING)
-
+        setState(FetchingState.FETCHING)
         ioThread {
             loadAfter(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?, delay: Boolean) {
                     if (isInvalid()) return
+
                     mainThread {
                         if (isInvalid()) return@mainThread
+                        onLoadResult(data, delay)
 
-                        if (data != null) {
-                            if (data.isEmpty()) {
-                                onStateChanged(FetchingState.DONE_FETCHING)
-                            } else {
-                                onStateChanged(FetchingState.READY_TO_FETCH)
-
-                                dataStorage.addAll(data)
-
-                                if (!delay) {
-                                    notifySubmitList()
-                                }
-                            }
-                        } else {
-                            onStateChanged(FetchingState.FETCHING_ERROR)
+                        if (data == null) {
+                            retryFunc = { scheduleLoadAfter() }
                         }
                     }
                 }
@@ -253,9 +267,30 @@ open class DataSource<T> {
         }
     }
 
-    protected open fun onStateChanged(newState: Int) {
-        fetchingState.setState(newState)
+    private fun onLoadResult(data: List<T>?, delay: Boolean) {
+        if (data != null) {
+            if (data.isEmpty()) {
+                setState(FetchingState.DONE_FETCHING)
+            } else {
+                setState(FetchingState.READY_TO_FETCH)
+
+                dataStorage.addItems(data)
+
+                if (!delay) {
+                    notifySubmitList()
+                }
+            }
+        } else {
+            setState(FetchingState.FETCHING_ERROR)
+        }
     }
+
+    private fun setState(newState: Int) {
+        fetchingState.setState(newState)
+        onStateChanged(newState)
+    }
+
+    protected open fun onStateChanged(newState: Int) {}
 
     private fun isInvalid(): Boolean {
         return invalid.get()
