@@ -7,7 +7,7 @@ import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.*
 
-class PagingListDiffer<T> {
+class SangeListDiffer<T> {
     var adapter: RecyclerView.Adapter<*>? = null
 
     private val diffCallback = PagingDiffCallback<T>()
@@ -71,19 +71,19 @@ class PagingListDiffer<T> {
 
                 override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                     return diffCallback.areItemsTheSame(
-                            oldList[oldItemPosition], newList[newItemPosition]
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
                 }
 
                 override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                     return diffCallback.areContentsTheSame(
-                            oldList[oldItemPosition], newList[newItemPosition]
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
                 }
 
                 override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
                     return diffCallback.getChangePayload(
-                            oldList[oldItemPosition], newList[newItemPosition]
+                        oldList[oldItemPosition], newList[newItemPosition]
                     )
                 }
             })

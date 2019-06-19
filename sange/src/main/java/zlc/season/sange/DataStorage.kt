@@ -4,24 +4,28 @@ open class DataStorage<T> {
     private val data = mutableListOf<T>()
 
     open fun all(): List<T> {
-        return data.toList()
+        val result = mutableListOf<T>()
+        result.addAll(data)
+        return result
     }
 
-    open fun clear() = data.clear()
+    open fun clear() {
+        data.clear()
+    }
 
-    open fun addAll(t: List<T>) {
+    fun addAll(t: List<T>) {
         data.addAll(t)
     }
 
-    open fun addAll(position: Int, t: List<T>) {
+    fun addAll(position: Int, t: List<T>) {
         data.addAll(position, t)
     }
 
-    open fun add(t: T) {
+    fun add(t: T) {
         data.add(t)
     }
 
-    open fun add(position: Int, t: T) {
+    fun add(position: Int, t: T) {
         try {
             data.add(position, t)
         } catch (t: Throwable) {
@@ -29,7 +33,7 @@ open class DataStorage<T> {
         }
     }
 
-    open fun removeAt(position: Int) {
+    fun removeAt(position: Int) {
         try {
             data.removeAt(position)
         } catch (t: Throwable) {
@@ -37,11 +41,11 @@ open class DataStorage<T> {
         }
     }
 
-    open fun remove(t: T) {
+    fun remove(t: T) {
         data.remove(t)
     }
 
-    open fun set(old: T, new: T) {
+    fun set(old: T, new: T) {
         try {
             data[indexOf(old)] = new
         } catch (t: Throwable) {
@@ -49,7 +53,7 @@ open class DataStorage<T> {
         }
     }
 
-    open fun set(index: Int, new: T) {
+    fun set(index: Int, new: T) {
         try {
             data[index] = new
         } catch (t: Throwable) {
@@ -57,7 +61,7 @@ open class DataStorage<T> {
         }
     }
 
-    open fun indexOf(t: T): Int {
+    fun indexOf(t: T): Int {
         return data.indexOf(t)
     }
 }

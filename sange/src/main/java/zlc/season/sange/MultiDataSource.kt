@@ -1,5 +1,8 @@
 package zlc.season.sange
 
+import zlc.season.ironbranch.assertMainThreadWithResult
+import zlc.season.ironbranch.ensureMainThread
+
 open class MultiDataSource<T> : DataSource<T>() {
     override val dataStorage = MultiDataStorage<T>()
 
@@ -83,6 +86,12 @@ open class MultiDataSource<T> : DataSource<T>() {
         }
     }
 
+    fun headerSize(): Int {
+        return assertMainThreadWithResult {
+            dataStorage.headerSize()
+        }
+    }
+
     /**
      * Footer functions
      */
@@ -162,10 +171,23 @@ open class MultiDataSource<T> : DataSource<T>() {
         }
     }
 
-    fun setStatus(newState: T) {
+    fun footerSize(): Int {
+        return assertMainThreadWithResult {
+            dataStorage.footerSize()
+        }
+    }
+
+    /**
+     * State functions
+     */
+    fun setState(newState: T) {
         ensureMainThread {
-            dataStorage.setStatus(newState)
+            dataStorage.setState(newState)
             notifySubmitList()
         }
+    }
+
+    fun getState(): T? {
+        return dataStorage.getState()
     }
 }

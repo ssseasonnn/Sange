@@ -1,9 +1,9 @@
 package zlc.season.sangedemo.zhihu
 
-import zlc.season.sange.PagingItem
+import zlc.season.sange.SangeItem
 
 
-interface DailyItem : PagingItem {
+interface DailyItem : SangeItem {
     fun getTopStorys(): List<DailyResp.TopStory>
 
     fun getStory(): DailyResp.Story

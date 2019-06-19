@@ -1,6 +1,7 @@
 package zlc.season.sange
 
 import android.support.v7.widget.RecyclerView
+import zlc.season.ironbranch.ensureMainThread
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.concurrent.atomic.AtomicBoolean
@@ -8,14 +9,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
 
     class Config(
-            val useDiff: Boolean = true
+        val useDiff: Boolean = true
     )
 
     protected open val dataStorage = DataStorage<T>()
 
     private val fetchingState = FetchingState()
     private val invalid = AtomicBoolean(false)
-    private var pagingListDiffer = PagingListDiffer<T>()
+    private var pagingListDiffer = SangeListDiffer<T>()
 
     /**
      * Invalidate data source.
@@ -186,7 +187,7 @@ open class DataSource<T> {
             return
         }
 
-        fetchingState.setState(FetchingState.FETCHING)
+        onStateChanged(FetchingState.FETCHING)
 
         ioThread {
             loadAfter(object : LoadCallback<T> {
@@ -197,17 +198,18 @@ open class DataSource<T> {
 
                         if (data != null) {
                             if (data.isEmpty()) {
-                                fetchingState.setState(FetchingState.DONE_FETCHING)
+                                onStateChanged(FetchingState.DONE_FETCHING)
                             } else {
+                                onStateChanged(FetchingState.READY_TO_FETCH)
+
                                 dataStorage.addAll(data)
 
                                 if (!delay) {
                                     notifySubmitList()
                                 }
-                                fetchingState.setState(FetchingState.READY_TO_FETCH)
                             }
                         } else {
-                            fetchingState.setState(FetchingState.FETCHING_ERROR)
+                            onStateChanged(FetchingState.FETCHING_ERROR)
                         }
                     }
                 }
@@ -215,8 +217,8 @@ open class DataSource<T> {
         }
     }
 
-    protected fun setStatus(){
-
+    protected open fun onStateChanged(newState: Int) {
+        fetchingState.setState(newState)
     }
 
     private fun isInvalid(): Boolean {

@@ -20,4 +20,4 @@ interface ViewType {
     }
 }
 
-interface PagingItem : Differ, ViewType
+interface SangeItem : Differ, ViewType

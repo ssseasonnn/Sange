@@ -6,15 +6,15 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.view_holder_zhihu_daily_header.*
 import kotlinx.android.synthetic.main.view_holder_zhihu_daily_item.*
 import zlc.season.sange.MultiDataSource
-import zlc.season.sange.MultiPagingAdapter
-import zlc.season.sange.PagingViewHolder
+import zlc.season.sange.MultiSangeAdapter
+import zlc.season.sange.SangeViewHolder
 import zlc.season.sangedemo.R
 
 
 class DailyAdapter(dataSource: MultiDataSource<DailyItem>) :
-    MultiPagingAdapter<DailyItem, PagingViewHolder<DailyItem>>(dataSource) {
+    MultiSangeAdapter<DailyItem, SangeViewHolder<DailyItem>>(dataSource) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagingViewHolder<DailyItem> {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<DailyItem> {
         if (viewType == 0) {
             return DailyNormalViewHolder(inflate(parent, R.layout.view_holder_zhihu_daily_item))
         } else {
@@ -30,7 +30,7 @@ class DailyAdapter(dataSource: MultiDataSource<DailyItem>) :
 
 
 class DailyHeaderViewHolder(containerView: View) :
-    PagingViewHolder<DailyItem>(containerView) {
+    SangeViewHolder<DailyItem>(containerView) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)
@@ -47,7 +47,7 @@ class DailyHeaderViewHolder(containerView: View) :
 }
 
 class DailyNormalViewHolder(containerView: View) :
-    PagingViewHolder<DailyItem>(containerView) {
+    SangeViewHolder<DailyItem>(containerView) {
 
     override fun onBind(t: DailyItem) {
         super.onBind(t)

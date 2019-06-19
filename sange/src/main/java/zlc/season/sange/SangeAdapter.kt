@@ -4,7 +4,7 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.Adapter
 import android.support.v7.widget.RecyclerView.ViewHolder
 
-abstract class PagingAdapter<T : Any, VH : ViewHolder>(
+abstract class SangeAdapter<T : Any, VH : ViewHolder>(
     protected open val dataSource: DataSource<T>
 ) : Adapter<VH>() {
 

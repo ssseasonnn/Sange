@@ -51,9 +51,9 @@ open class MultiDataStorage<T> : DataStorage<T>() {
         headers[index] = new
     }
 
-    fun clearHeader() {
-        headers.clear()
-    }
+    fun headerSize() = headers.size
+
+    fun clearHeader() = headers.clear()
 
 
     /**
@@ -81,16 +81,18 @@ open class MultiDataStorage<T> : DataStorage<T>() {
         footers[index] = new
     }
 
+    fun footerSize() = footers.size
+
     fun clearFooter() = footers.clear()
 
     /**
      * Status functions
      */
-    fun setStatus(t: T) {
+    fun setState(t: T) {
         status = t
     }
 
-    fun getStatus(): T? {
+    fun getState(): T? {
         return status
     }
 }

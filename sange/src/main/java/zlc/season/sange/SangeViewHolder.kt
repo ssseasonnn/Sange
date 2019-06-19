@@ -4,7 +4,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import kotlinx.android.extensions.LayoutContainer
 
-open class PagingViewHolder<T>(override val containerView: View) :
+open class SangeViewHolder<T>(override val containerView: View) :
     RecyclerView.ViewHolder(containerView),
     LayoutContainer {
 

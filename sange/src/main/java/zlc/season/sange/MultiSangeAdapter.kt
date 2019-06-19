@@ -3,8 +3,8 @@ package zlc.season.sange
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.NO_POSITION
 
-abstract class MultiPagingAdapter<T : PagingItem, VH : PagingViewHolder<T>>(dataSource: DataSource<T>) :
-    PagingAdapter<T, VH>(dataSource) {
+abstract class MultiSangeAdapter<T : SangeItem, VH : SangeViewHolder<T>>(dataSource: DataSource<T>) :
+    SangeAdapter<T, VH>(dataSource) {
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.onBind(getItem(position))

@@ -8,12 +8,12 @@ import com.bumptech.glide.Glide
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.view_hoder_github_repo.*
 import zlc.season.sange.DataSource
-import zlc.season.sange.PagingAdapter
+import zlc.season.sange.SangeAdapter
 import zlc.season.sangedemo.R
 import zlc.season.sangedemo.github.GithubRepositoryResp.GithubRepository
 
 class GithubRepoAdapter(dataSource: DataSource<GithubRepository>) :
-        PagingAdapter<GithubRepository, GithubRepoAdapter.GithubRepoViewHolder>(dataSource) {
+        SangeAdapter<GithubRepository, GithubRepoAdapter.GithubRepoViewHolder>(dataSource) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GithubRepoViewHolder {
         return GithubRepoViewHolder.create(
