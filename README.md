@@ -27,7 +27,64 @@ dependencies {
 
 Step 3. Usage
 
+First, create a DataSource:
 
+```kotlin
+class DemoDataSource : MultiDataSource<SangeItem>() {
+
+    override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
+
+        val items = mutableListOf<SangeItem>()
+        for (i in 0 until 10) {
+            items.add(NormalItem(i))
+        }
+
+        loadCallback.setResult(items)
+    }
+
+    override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
+
+        val items = mutableListOf<SangeItem>()
+        for (i in page * 10 until (page + 1) * 10) {
+            items.add(NormalItem(i))
+        }
+
+        loadCallback.setResult(items)
+    }
+}
+
+```
+
+Second, create an Adapter, like that:
+
+```kotlin
+class DemoAdapter(dataSource: DataSource<SangeItem>) :
+        SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
+        return when (viewType) {
+            NORMAL -> NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
+            HEADER -> HeaderViewHolder(inflate(parent, R.layout.view_holder_header))
+            FOOTER -> FooterViewHolder(inflate(parent, R.layout.view_holder_footer))
+            STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
+            else -> throw  IllegalStateException("not support this view type:[$viewType]")
+        }
+    }
+
+    private fun inflate(parent: ViewGroup, res: Int): View {
+        return LayoutInflater.from(parent.context).inflate(res, parent, false)
+    }
+}
+```
+
+Then, set the data source into adapter:
+
+```kotlin
+recycler_view.layoutManager = LinearLayoutManager(this)
+recycler_view.adapter = DemoAdapter(demoViewModel.dataSource)
+```
+
+Last, enjoy! Sange will  automatic paging.
 
 ### License
 
