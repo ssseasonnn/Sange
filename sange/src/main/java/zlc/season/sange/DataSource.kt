@@ -1,6 +1,7 @@
 package zlc.season.sange
 
 import android.support.v7.widget.RecyclerView
+import zlc.season.ironbranch.assertMainThreadWithResult
 import zlc.season.ironbranch.ensureMainThread
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
@@ -24,7 +25,7 @@ open class DataSource<T> {
     fun invalidate() {
         ensureMainThread {
             if (invalid.compareAndSet(false, true)) {
-                dataStorage.clear()
+                dataStorage.clearAll()
                 dispatchLoadInitial()
             }
         }
@@ -36,6 +37,15 @@ open class DataSource<T> {
     fun notifySubmitList(initial: Boolean = false) {
         ensureMainThread {
             pagingListDiffer.submitList(dataStorage.all(), initial)
+        }
+    }
+
+    fun clearAll(delay: Boolean = false) {
+        ensureMainThread {
+            dataStorage.clearAll()
+            if (!delay) {
+                notifySubmitList()
+            }
         }
     }
 
@@ -119,12 +129,22 @@ open class DataSource<T> {
         }
     }
 
+    /**
+     * return data for [position]
+     */
     fun get(position: Int): T {
-        return pagingListDiffer.get(position)
+        return assertMainThreadWithResult {
+            dataStorage.get(position)
+        }
     }
 
+    /**
+     * return data size
+     */
     fun size(): Int {
-        return pagingListDiffer.size()
+        return assertMainThreadWithResult {
+            dataStorage.size()
+        }
     }
 
     /**
@@ -146,11 +166,27 @@ open class DataSource<T> {
         }
     }
 
-    internal fun getItemCount() = size()
+    /**
+     * Get total item count
+     */
+    fun getItemCount(): Int {
+        return pagingListDiffer.size()
+    }
 
-    internal fun getItem(position: Int): T {
+    /**
+     * Get item for [position]
+     */
+    fun getItem(position: Int): T {
+        return pagingListDiffer.get(position)
+    }
+
+    internal fun innerItemCount(): Int {
+        return getItemCount()
+    }
+
+    internal fun innerItem(position: Int): T {
         dispatchLoadAround(position)
-        return get(position)
+        return getItem(position)
     }
 
     private fun dispatchLoadInitial() {

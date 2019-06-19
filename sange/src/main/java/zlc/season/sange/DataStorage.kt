@@ -9,8 +9,16 @@ open class DataStorage<T> {
         return result
     }
 
-    open fun clear() {
+    open fun clearAll() {
         data.clear()
+    }
+
+    fun clear() {
+        data.clear()
+    }
+
+    fun size(): Int {
+        return data.size
     }
 
     fun addAll(t: List<T>) {
@@ -60,6 +68,8 @@ open class DataStorage<T> {
             t.printStackTrace()
         }
     }
+
+    fun get(position: Int) = data[position]
 
     fun indexOf(t: T): Int {
         return data.indexOf(t)

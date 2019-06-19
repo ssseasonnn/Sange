@@ -188,6 +188,8 @@ open class MultiDataSource<T> : DataSource<T>() {
     }
 
     fun getState(): T? {
-        return dataStorage.getState()
+        return assertMainThreadWithResult {
+            dataStorage.getState()
+        }
     }
 }
