@@ -8,11 +8,6 @@ import zlc.season.ironbranch.mainThread
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class DataSource<T> {
-
-    class Config(
-            val useDiff: Boolean = true
-    )
-
     protected open val dataStorage = DataStorage<T>()
 
     private val fetchingState = FetchingState()
@@ -25,7 +20,9 @@ open class DataSource<T> {
      * Retry fetching.
      */
     fun retry() {
-        retryFunc()
+        ensureMainThread {
+            retryFunc()
+        }
     }
 
     /**
@@ -34,10 +31,7 @@ open class DataSource<T> {
     fun invalidate(clear: Boolean = true) {
         ensureMainThread {
             if (invalid.compareAndSet(false, true)) {
-                if (clear) {
-                    dataStorage.clearAll()
-                }
-                dispatchLoadInitial()
+                dispatchLoadInitial(clear)
             }
         }
     }
@@ -219,15 +213,19 @@ open class DataSource<T> {
         return this.get(position)
     }
 
-    private fun dispatchLoadInitial() {
+    private fun dispatchLoadInitial(clear: Boolean) {
+        if (clear) {
+            dataStorage.clearAll()
+        }
+
         ioThread {
             loadInitial(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?, delay: Boolean) {
+                override fun setResult(data: List<T>?) {
                     mainThread {
-                        onLoadResult(data, delay)
+                        onLoadResult(data, true)
                         invalid.compareAndSet(true, false)
                         if (data == null) {
-                            retryFunc = { dispatchLoadInitial() }
+                            retryFunc = { dispatchLoadInitial(clear) }
                         }
                     }
                 }
@@ -251,12 +249,12 @@ open class DataSource<T> {
         setState(FetchingState.FETCHING)
         ioThread {
             loadAfter(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?, delay: Boolean) {
+                override fun setResult(data: List<T>?) {
                     if (isInvalid()) return
 
                     mainThread {
                         if (isInvalid()) return@mainThread
-                        onLoadResult(data, delay)
+                        onLoadResult(data, false)
 
                         if (data == null) {
                             retryFunc = { scheduleLoadAfter() }
@@ -267,18 +265,15 @@ open class DataSource<T> {
         }
     }
 
-    private fun onLoadResult(data: List<T>?, delay: Boolean) {
+    private fun onLoadResult(data: List<T>?, isInitial: Boolean) {
         if (data != null) {
             if (data.isEmpty()) {
                 setState(FetchingState.DONE_FETCHING)
             } else {
-                setState(FetchingState.READY_TO_FETCH)
-
                 dataStorage.addItems(data)
+                notifySubmitList(isInitial)
 
-                if (!delay) {
-                    notifySubmitList()
-                }
+                setState(FetchingState.READY_TO_FETCH)
             }
         } else {
             setState(FetchingState.FETCHING_ERROR)
@@ -297,6 +292,6 @@ open class DataSource<T> {
     }
 
     interface LoadCallback<T> {
-        fun setResult(data: List<T>?, delay: Boolean = false)
+        fun setResult(data: List<T>?)
     }
 }

@@ -7,7 +7,7 @@ import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.*
 
-class SangeListDiffer<T> {
+internal class SangeListDiffer<T> {
     var adapter: RecyclerView.Adapter<*>? = null
 
     private val diffCallback = PagingDiffCallback<T>()
@@ -15,19 +15,19 @@ class SangeListDiffer<T> {
     private var list = emptyList<T>()
     private var currentList = emptyList<T>()
 
-    fun size() = currentList.size
-
-    fun get(position: Int) = currentList[position]
-
     // Max generation of currently scheduled runnable
     private var mMaxScheduledGeneration: Int = 0
 
+    internal fun size() = currentList.size
 
-    fun submitList(newList: List<T>, initial: Boolean = false) {
+    internal fun get(position: Int) = currentList[position]
+
+    internal fun submitList(newList: List<T>, initial: Boolean = false) {
         if (initial) {
             list = newList
             currentList = Collections.unmodifiableList(newList)
             adapter?.notifyDataSetChanged()
+            return
         }
 
         if (newList === list) {
@@ -110,7 +110,7 @@ class SangeListDiffer<T> {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areItemsTheSame(newItem)
             } else {
-                oldItem === newItem
+                return oldItem === newItem
             }
         }
 
@@ -119,7 +119,7 @@ class SangeListDiffer<T> {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areContentsTheSame(newItem)
             } else {
-                oldItem == newItem
+                true
             }
         }
 

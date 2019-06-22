@@ -6,7 +6,7 @@ interface Differ {
     }
 
     fun areContentsTheSame(other: Differ): Boolean {
-        return this == other
+        return true
     }
 
     fun getChangePayload(other: Differ): Any? {
