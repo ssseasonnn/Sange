@@ -1,10 +1,10 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo.demo.multi
 
 import android.arch.lifecycle.MutableLiveData
 import zlc.season.sange.MultiDataSource
 import zlc.season.sange.SangeItem
 
-class DemoDataSource : MultiDataSource<SangeItem>() {
+class MultiDataSource : MultiDataSource<SangeItem>() {
     val refresh = MutableLiveData<Boolean>()
     var page = 0
 
@@ -14,26 +14,29 @@ class DemoDataSource : MultiDataSource<SangeItem>() {
         refresh.postValue(true)
 
         Thread.sleep(1500)
-
         val headers = mutableListOf<SangeItem>()
         for (i in 0 until 2) {
             headers.add(HeaderItem(i))
         }
+        addHeaders(headers)
 
-        val items = mutableListOf<SangeItem>()
-        for (i in 0 until 10) {
-            items.add(NormalItem(i))
-        }
 
+
+        Thread.sleep(2000)
         val footers = mutableListOf<SangeItem>()
         for (i in 0 until 2) {
             footers.add(FooterItem(i))
         }
+        addFooters(footers)
 
-        addHeaders(headers, delay = true)
-        addFooters(footers, delay = true)
 
+        Thread.sleep(2000)
+        val items = mutableListOf<SangeItem>()
+        for (i in 0 until 10) {
+            items.add(NormalItem(i))
+        }
         loadCallback.setResult(items)
+
 
         refresh.postValue(false)
     }
@@ -58,7 +61,6 @@ class DemoDataSource : MultiDataSource<SangeItem>() {
     }
 
     override fun onStateChanged(newState: Int) {
-        super.onStateChanged(newState)
         setState(StateItem(newState, ::retry))
     }
 }

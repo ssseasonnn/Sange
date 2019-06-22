@@ -1,9 +1,9 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo.demo.normal
 
 import android.arch.lifecycle.ViewModel
 
-class DemoViewModel : ViewModel() {
-    val dataSource = DemoDataSource()
+class NormalViewModel : ViewModel() {
+    val dataSource = NormalDataSource()
 
     val refresh = dataSource.refresh
 

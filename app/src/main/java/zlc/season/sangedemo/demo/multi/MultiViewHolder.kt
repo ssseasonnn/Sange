@@ -1,4 +1,4 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo.demo.multi
 
 import android.view.View
 import kotlinx.android.synthetic.main.view_holder_footer.*

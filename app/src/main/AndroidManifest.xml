@@ -16,13 +16,16 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".demo.DemoActivity">
+        <activity android:name=".demo.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".demo.normal.NormalActivity" />
+        <activity android:name=".demo.multi.MultiActivity" />
     </application>
 
 </manifest>

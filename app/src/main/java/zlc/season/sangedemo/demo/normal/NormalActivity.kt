@@ -1,4 +1,4 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo.demo.normal
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -8,9 +8,9 @@ import android.support.v7.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_demo.*
 import zlc.season.sangedemo.R
 
-class DemoActivity : AppCompatActivity() {
-    private val demoViewModel by lazy {
-        ViewModelProviders.of(this)[DemoViewModel::class.java]
+class NormalActivity : AppCompatActivity() {
+    private val viewModel by lazy {
+        ViewModelProviders.of(this)[NormalViewModel::class.java]
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,13 +18,13 @@ class DemoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_demo)
 
         recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.adapter = DemoAdapter(demoViewModel.dataSource)
+        recycler_view.adapter = NormalAdapter(viewModel.dataSource)
 
         swipe_refresh_layout.setOnRefreshListener {
-            demoViewModel.refresh()
+            viewModel.refresh()
         }
 
-        demoViewModel.refresh.observe(this, Observer {
+        viewModel.refresh.observe(this, Observer {
             if (it == null) return@Observer
             swipe_refresh_layout.isRefreshing = it
         })

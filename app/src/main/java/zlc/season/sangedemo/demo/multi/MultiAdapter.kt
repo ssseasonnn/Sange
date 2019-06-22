@@ -1,4 +1,4 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo.demo.multi
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +9,7 @@ import zlc.season.sange.SangeMultiAdapter
 import zlc.season.sange.SangeViewHolder
 import zlc.season.sangedemo.R
 
-class DemoAdapter(dataSource: DataSource<SangeItem>) :
+class MultiAdapter(dataSource: DataSource<SangeItem>) :
         SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
