@@ -4,6 +4,8 @@
 
 # Sange(散华)
 
+*Read this in other languages: [中文](README.zh.md), [English](README.md)*
+
 一个快速实现RecyclerView分页加载的轻量级库.
 
 
@@ -85,7 +87,8 @@ class NormalDataSource : DataSource<NormalItem>() {
 
 loadInitial和loadAfter方法都将在子线程中调用, 因此无需担心在这两个方法中做的任何耗时操作.
 
-数据加载完成后, 只需调用LoadCallback的setResult(list)方法即可, 散华会替你做好其他的一切工作,包括线程切换,通知界面更新等, 你需要做的, 仅仅只是关注于数据的加载.
+数据加载完成后, 只需调用LoadCallback的setResult(list)方法即可, 散华会替你做好其他的一切工作,
+包括线程切换,通知界面更新等, 你需要做的, 仅仅只是关注于数据的加载.
 
 2. 下一步就是创建一个你自己的Adapter,通过继承散华提供的**SangeAdapter**, 你可以轻松的将DataSource结合起来.
 
