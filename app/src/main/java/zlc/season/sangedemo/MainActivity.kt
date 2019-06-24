@@ -1,11 +1,10 @@
-package zlc.season.sangedemo.demo
+package zlc.season.sangedemo
 
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
-import zlc.season.sangedemo.R
-import zlc.season.sangedemo.demo.multi.MultiActivity
+import zlc.season.sangedemo.demo.DemoActivity
 import zlc.season.sangedemo.demo.normal.NormalActivity
 
 class MainActivity : AppCompatActivity() {
@@ -18,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn_multi.setOnClickListener {
-            startActivity(Intent(this, MultiActivity::class.java))
+            startActivity(Intent(this, DemoActivity::class.java))
         }
 
     }

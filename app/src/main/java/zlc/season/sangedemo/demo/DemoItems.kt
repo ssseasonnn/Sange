@@ -1,4 +1,4 @@
-package zlc.season.sangedemo.demo.multi
+package zlc.season.sangedemo.demo
 
 import zlc.season.sange.SangeItem
 

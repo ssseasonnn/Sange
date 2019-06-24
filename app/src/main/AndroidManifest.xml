@@ -16,7 +16,7 @@
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".demo.MainActivity">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,7 +25,7 @@
         </activity>
 
         <activity android:name=".demo.normal.NormalActivity" />
-        <activity android:name=".demo.multi.MultiActivity" />
+        <activity android:name=".demo.DemoActivity" />
     </application>
 
 </manifest>
