@@ -42,26 +42,32 @@ dependencies {
 
 ### 开始使用
 
-1. 散华核心的功能是**DataSource**, 利用它,只需几个简单的步骤,即可轻松实现数据的初始化及分页加载.
+散华核心的功能是**DataSource**, 利用它,只需几个简单的步骤,即可轻松实现数据的初始化及分页加载.
 
 在此之前, 我们得先定义好我们的数据类型, 例如:
 
 ```kotlin
-class NormalItem(val number: Int)
+class NormalItem(val number: Int): SangeItem
 ```
 
-接下来继承DataSource并实现**loadInitial**和**loadAfter**方法, 例如:
+> 如你所见, 数据类型实现了**SangeItem**接口, 不过这一步不是必须的, 除非你需要实现多Item类型
+
+
+接下来创建你自己的DataSource, 你可以选择继承**DataSource**,或者继承**MultiDataSource**,
+区别在于**MultDataSource**有着更多的功能, 例如添加Header或者添加Footer.
+
+这里我们继承了**MultiDataSource**, 并把**SangeItem**当作泛型参数, 然后实现**loadInitial**和**loadAfter**方法:
 
 ```kotlin
-class NormalDataSource : DataSource<NormalItem>() {
+class CustomDataSource : MultiDataSource<SangeItem>() {
 
-    override fun loadInitial(loadCallback: LoadCallback<NormalItem>) {
+    override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
 
         //loadInitial 将会在子线程中调用, 因此无需担心任何耗时操作
         Thread.sleep(2000)
 
         // 加载数据
-        val items = mutableListOf<NormalItem>()
+        val items = mutableListOf<SangeItem>()
         for (i in 0 until 10) {
             items.add(NormalItem(i))
         }
@@ -70,11 +76,11 @@ class NormalDataSource : DataSource<NormalItem>() {
         loadCallback.setResult(items)
     }
 
-    override fun loadAfter(loadCallback: LoadCallback<NormalItem>) {
+    override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
         //loadAfter 将会在子线程中调用, 因此无需担心任何耗时操作
         Thread.sleep(2000)
 
-        val items = mutableListOf<NormalItem>()
+        val items = mutableListOf<SangeItem>()
         for (i in page * 10 until (page + 1) * 10) {
             items.add(NormalItem(i))
         }
@@ -119,7 +125,7 @@ recycler_view.adapter = NormalAdapter(NormalDataSource())
 
 ## 显示加载状态
 
-到目前为止我们一切进展很顺利, 可是似乎缺少了分页加载的进度显示, 下面来简单的实现它吧.
+到目前为止我们一切进展很顺利, 可是似乎缺少了分页加载的进度显示, 下面来实现它吧.
 
 在DataSource中, 除了loadInitial和loadAfter我们还有一个额外的方法: **onStateChanged(newState)**.
 

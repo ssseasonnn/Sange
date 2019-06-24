@@ -1,6 +1,6 @@
 package zlc.season.sange
 
-open class MultiDataStorage<T> : DataStorage<T>() {
+open class SangeDataStorage<T> : DataStorage<T>() {
     private val headers = mutableListOf<T>()
     private val footers = mutableListOf<T>()
 

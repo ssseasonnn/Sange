@@ -39,9 +39,9 @@ open class DataSource<T> {
     /**
      * Notify submit list.
      */
-    fun notifySubmitList(initial: Boolean = false) {
+    fun notifySubmitList() {
         ensureMainThread {
-            pagingListDiffer.submitList(dataStorage.toList(), initial)
+            pagingListDiffer.submitList(dataStorage.toList())
         }
     }
 
@@ -222,7 +222,7 @@ open class DataSource<T> {
             loadInitial(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
                     mainThread {
-                        onLoadResult(data, true)
+                        onLoadResult(data)
                         invalid.compareAndSet(true, false)
                         if (data == null) {
                             retryFunc = { dispatchLoadInitial(clear) }
@@ -246,7 +246,7 @@ open class DataSource<T> {
     }
 
     private fun scheduleLoadAfter() {
-        setState(FetchingState.FETCHING)
+        changeState(FetchingState.FETCHING)
         ioThread {
             loadAfter(object : LoadCallback<T> {
                 override fun setResult(data: List<T>?) {
@@ -254,7 +254,7 @@ open class DataSource<T> {
 
                     mainThread {
                         if (isInvalid()) return@mainThread
-                        onLoadResult(data, false)
+                        onLoadResult(data)
 
                         if (data == null) {
                             retryFunc = { scheduleLoadAfter() }
@@ -265,26 +265,32 @@ open class DataSource<T> {
         }
     }
 
-    private fun onLoadResult(data: List<T>?, isInitial: Boolean) {
+    private fun onLoadResult(data: List<T>?) {
         if (data != null) {
             if (data.isEmpty()) {
-                setState(FetchingState.DONE_FETCHING)
+                changeState(FetchingState.DONE_FETCHING)
             } else {
                 dataStorage.addItems(data)
-                notifySubmitList(isInitial)
+                notifySubmitList()
 
-                setState(FetchingState.READY_TO_FETCH)
+                changeState(FetchingState.READY_TO_FETCH)
             }
         } else {
-            setState(FetchingState.FETCHING_ERROR)
+            changeState(FetchingState.FETCHING_ERROR)
         }
     }
 
-    private fun setState(newState: Int) {
+    private fun changeState(newState: Int) {
         fetchingState.setState(newState)
         onStateChanged(newState)
     }
 
+    /**
+     * Call on state changed.
+     * @param newState May be these values:
+     *  [FetchingState.FETCHING], [FetchingState.FETCHING_ERROR],
+     *  [FetchingState.DONE_FETCHING], [FetchingState.READY_TO_FETCH]
+     */
     protected open fun onStateChanged(newState: Int) {}
 
     private fun isInvalid(): Boolean {

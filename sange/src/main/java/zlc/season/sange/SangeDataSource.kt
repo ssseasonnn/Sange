@@ -3,8 +3,8 @@ package zlc.season.sange
 import zlc.season.ironbranch.assertMainThreadWithResult
 import zlc.season.ironbranch.ensureMainThread
 
-open class MultiDataSource<T> : DataSource<T>() {
-    override val dataStorage = MultiDataStorage<T>()
+open class SangeDataSource<T> : DataSource<T>() {
+    override val dataStorage = SangeDataStorage<T>()
 
     /**
      * Add header
