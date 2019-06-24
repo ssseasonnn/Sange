@@ -9,9 +9,19 @@
 A lightweight library that quickly implements RecyclerView paging loading.
 
 
-### Prepare
+> Item introduction：
+>
+> Sange is an extremely accurate weapon. It has incredible spirituality, as if it would find its own weaknesses to attack.
+>
+> Increase the power of 16.
+>
+> Increase the attack power by 10.
+>
+> Disabled (passive): There is a 15% chance that the target will be disabled in the attack. The disability effect reduces the target's movement speed by 20% for 4 sec.
 
-1. Add the JitPack repository to your build file
+## Prepare
+
+1. Add jitpack to build.gradle
 ```gradle
 allprojects {
     repositories {
@@ -21,7 +31,7 @@ allprojects {
 }
 ```
 
-2. Add the dependency
+2. Add dependency
 
 ```gradle
 dependencies {
@@ -30,275 +40,225 @@ dependencies {
 }
 ```
 
-### Usage
+## Start
 
-1. The core function of Sange is DataSource, which makes it easy to initialize and page load data in a few simple steps.
+### First Blood
 
-Before that, we have to define our data types first, for example:
+- The function of the Sange core is **DataSource**, which makes it easy to initialize and page load data in a few simple steps.
 
-```kotlin
-class NormalItem(val number: Int)
-```
+    Before that, we have to define our data types first, remember to implement the **SangeItem** interface. For example:
 
-Next inherit the DataSource and implement the **loadInitial** and **loadAfter** methods, for example:
+    ```kotlin
+    class NormalItem(val number: Int): SangeItem
+    ```
 
-```kotlin
-class NormalDataSource : DataSource<NormalItem>() {
+- Next create your own DataSource.
 
-    override fun loadInitial(loadCallback: LoadCallback<NormalItem>) {
+    As shown below, we inherit **MultiDataSource** and treat **SangeItem** as a generic parameter, then implement the **loadInitial** and **loadAfter** methods:
 
-        //loadInitial will be called in the io thread.
-        Thread.sleep(2000)
+    ```kotlin
+    class DemoDataSource : MultiDataSource<SangeItem>() {
 
-        // loading
-        val items = mutableListOf<NormalItem>()
-        for (i in 0 until 10) {
-            items.add(NormalItem(i))
+        override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
+
+            //loadInitial will be called in the io thread, so there is no need to worry about any time-consuming operations
+            Thread.sleep(2000)
+
+            // loading...
+            val items = mutableListOf<SangeItem>()
+            for (i in 0 until 10) {
+                items.add(NormalItem(i))
+            }
+
+            //set loading result
+            loadCallback.setResult(items)
         }
 
-        //Update RecyclerView by passing the loaded data to LoadCallback
-        loadCallback.setResult(items)
-    }
+        override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
+            //loadAfter will be called in the io thread
+            Thread.sleep(2000)
 
-    override fun loadAfter(loadCallback: LoadCallback<NormalItem>) {
-        //loadAfter will be called in the io thread.
-        Thread.sleep(2000)
+            val items = mutableListOf<SangeItem>()
+            for (i in page * 10 until (page + 1) * 10) {
+                items.add(NormalItem(i))
+            }
 
-        val items = mutableListOf<NormalItem>()
-        for (i in page * 10 until (page + 1) * 10) {
-            items.add(NormalItem(i))
-        }
-
-        loadCallback.setResult(items)
-    }
-}
-
-```
-
-Both the loadInitial and loadAfter methods will be called in the io thread,
-so there is no need to worry about any time-consuming operations in both methods.
-
-After the data is loaded, just call LoadCallback's setResult(list) method,
-and Sange will do all the other work for you, including thread switching,
-notification interface update, etc.
-What you need to do is just focus on the data load.
-
-2. The next step is to create your own Adapter.
-By inheriting the **SangeAdapter** provided by Sange,
-you can easily combine the DataSources.
-
-For example
-
-```kotlin
-class NormalAdapter(dataSource: DataSource<NormalItem>) :
-    SangeAdapter<NormalItem, NormalViewHolder>(dataSource) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NormalViewHolder {
-        return NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
-    }
-
-    override fun onBindViewHolder(holder: NormalViewHolder, position: Int) {
-        holder.onBind(getItem(position))
-    }
-}
-```
-
-3. Finally, associate the RecyclerView with the Adapter:
-
-```kotlin
-recycler_view.layoutManager = LinearLayoutManager(this)
-recycler_view.adapter = NormalAdapter(NormalDataSource())
-```
-
-That's it, you don't have to care about the logic of paging.
-
-## Show loading state.
-
-```kotlin
-class NormalDataSource : DataSource<NormalItem>() {
-
-    override fun loadInitial(loadCallback: LoadCallback<NormalItem>) {
-        //...
-    }
-
-    override fun loadAfter(loadCallback: LoadCallback<NormalItem>) {
-        //...
-    }
-
-    override fun onStateChanged(newState: Int) {
-        //set extra state item
-        setState(NormalStateItem(state = newState, retry = ::retry))
-    }
-}
-```
-
-With the setState() method, we added an additional Item entry for
-the state to represent the state, so we need to modify our Adapter slightly
-so that the loaded state is correctly displayed.
-
-```kotlin
-class NormalAdapter(dataSource: DataSource<NormalItem>) :
-        SangeAdapter<NormalItem, NormalViewHolder>(dataSource) {
-
-    //...
-
-    override fun onBindViewHolder(holder: NormalViewHolder, position: Int) {
-        val item = getItem(position)
-
-        //Determine the current item type, if it is a state type, render state
-        if (item is NormalStateItem) {
-            holder.onBindState(item)
-        } else {
-            holder.onBind(item)
+            loadCallback.setResult(items)
         }
     }
 
+    ```
+
+    Both the loadInitial and loadAfter methods will be called in the child thread, so there is no need to worry about any time-consuming operations in both methods.
+
+    After the data is loaded, just call LoadCallback's setResult(list) method, and Sange will do everything else for you.
+    Including thread switching, notification interface updates, etc., you need to do, just focus on the loading of data.
+
+- Next, create a ViewHolder for display. By inheriting the **SangeViewHolder** provided by the Sange, you can omit many other tedious tasks.
+
+    E.g:
+
+    ```kotlin
     class NormalViewHolder(containerView: View) :
-            RecyclerView.ViewHolder(containerView) {
+            SangeViewHolder<SangeItem>(containerView) {
 
-        //...
+        override fun onBind(t: SangeItem) {
+            t as NormalItem
+            tv_normal_content.text = t.toString()
+        }
+    }
+    ```
 
-        fun onBindState(t: NormalStateItem) {
-            itemView.tv_state_content.setOnClickListener {
+- The next step is to create your own Adapter. By inheriting the **SangeMultiAdapter** provided by Sange, you can easily combine the DataSources.
+
+    E.g:
+
+    ```kotlin
+    class DemoAdapter(dataSource: DataSource<SangeItem>) :
+            SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
+            return NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
+        }
+    }
+    ```
+
+- Finally, associate the RecyclerView with the Adapter:
+
+    ```kotlin
+    recycler_view.layoutManager = LinearLayoutManager(this)
+    recycler_view.adapter = DemoAdapter(DemoDataSource())
+    ```
+
+    That's it, you don't need to care about the logic of paging, you just need to focus on what you really should pay attention to: Load the data, and leave it to the Sange!
+
+### Double Kill
+
+So far we have all gone well, but it seems that we lack the status display of page load. Let's implement it.
+
+- In order to display the loaded state, we first create a data type that represents the state:
+
+    ```kotlin
+    class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
+        override fun viewType() = STATE
+    }
+    ```
+    > As you can see, we also implemented the **SangeItem** interface and implemented the viewType method, which returns a new Type type in the method.
+
+- Then we slightly modify the DataSource, we implement an additional method: **onStateChanged(newState)**.
+
+    ```kotlin
+    class DemoDataSource : MultiDataSource<SangeItem>() {
+
+        override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
+            //...
+        }
+
+        override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
+            //...
+        }
+
+        override fun onStateChanged(newState: Int) {
+            //利用DataSource的setState方法, 添加一个额外的状态Item
+            setState(StateItem(state = newState, retry = ::retry))
+        }
+    }
+    ```
+
+    This method will be called at different stages of the page load to tell us the current state of the DataSource, such as loading, loading failure, loading success, etc.
+    By implementing this method, we can control the display of the loading state and customize the style of the display.
+
+    As shown above, we have added a Data Item item to represent the status.
+
+- Again, we need a ViewHolder that renders the State:
+
+    ```kotlin
+    class StateViewHolder(containerView: View) :
+            SangeViewHolder<SangeItem>(containerView) {
+
+        override fun onBind(t: SangeItem) {
+            super.onBind(t)
+            t as StateItem
+
+            tv_state_content.setOnClickListener {
                 t.retry()
             }
 
             when {
                 t.state == FetchingState.FETCHING -> {
-                    itemView.state_loading.visibility = View.VISIBLE
-                    itemView.tv_state_content.visibility = View.GONE
+                    state_loading.visibility = View.VISIBLE
+                    tv_state_content.visibility = View.GONE
                 }
                 t.state == FetchingState.FETCHING_ERROR -> {
-                    itemView.state_loading.visibility = View.GONE
-                    itemView.tv_state_content.visibility = View.VISIBLE
+                    state_loading.visibility = View.GONE
+                    tv_state_content.visibility = View.VISIBLE
                 }
                 t.state == FetchingState.DONE_FETCHING -> {
-                    itemView.state_loading.visibility = View.GONE
-                    itemView.tv_state_content.visibility = View.GONE
+                    state_loading.visibility = View.GONE
+                    tv_state_content.visibility = View.GONE
                 }
                 else -> {
-                    itemView.state_loading.visibility = View.GONE
-                    itemView.tv_state_content.visibility = View.GONE
+                    state_loading.visibility = View.GONE
+                    tv_state_content.visibility = View.GONE
                 }
             }
         }
     }
-}
+    ```
 
-```
+- Finally, the loading status is displayed.
 
-Here we are simply an example of rendering a single type of data,
-so we do not use ViewType to implement multiple types of item display,
-just simply determine the type of data and render different types of UI views.
+    ```kotlin
+    class DemoAdapter(dataSource: DataSource<SangeItem>) :
+            SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
 
-Final result:
-
-![](https://github.com/ssseasonnn/Sange/raw/master/normal.gif)
-
-
-## Multi-Item Type.
-
-
-If we need a more complex display, including a variety of view types,
-or need to display the head and tail, it does not matter, Sange can help you easily.
-
-1. First define the various data types we need:
-
-```kotlin
-const val NORMAL = 0
-const val HEADER = 1
-const val FOOTER = 2
-const val STATE = 3
-
-open class NormalItem(val i: Int) : SangeItem {
-    override fun viewType() = NORMAL
-}
-
-class HeaderItem(val i: Int) : SangeItem {
-    override fun viewType() = HEADER
-}
-
-class FooterItem(val i: Int) : SangeItem {
-    override fun viewType() = FOOTER
-}
-
-//Don't forget our status type
-class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
-    override fun viewType() = STATE
-}
-```
-
-
-Implements **SangeItem** interface for all types,
-and implements the viewType() method of the interface,
-returning the corresponding type value in the method.
-
-2. Next, let's adjust our DataSource, this time we use the more powerful **MultiDataSource** :
-
-```kotlin
-class DemoDataSource : MultiDataSource<SangeItem>() {
-
-    override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
-        //loading Header data
-        val headers = mutableListOf<SangeItem>()
-        for (i in 0 until 2) {
-            headers.add(HeaderItem(i))
-        }
-        //add header data into DataSource
-        addHeaders(headers)
-
-        //loading Footer data
-        val footers = mutableListOf<SangeItem>()
-        for (i in 0 until 2) {
-            footers.add(FooterItem(i))
-        }
-
-        //add footer data into DataSource
-        addFooters(footers)
-
-
-        val items = mutableListOf<SangeItem>()
-        for (i in 0 until 10) {
-            items.add(NormalItem(i))
-        }
-
-        loadCallback.setResult(items)
-    }
-
-    override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
-        //...
-    }
-
-    override fun onStateChanged(newState: Int) {
-        setState(StateItem(newState, ::retry))
-    }
-}
-```
-
-
-3. Finally adjust the Adapter, here also use the more powerful **SangeMultiAdapter**:
-
-```kotlin
-class DemoAdapter(dataSource: DataSource<SangeItem>) :
-        SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
-        return when (viewType) {
-            NORMAL -> NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
-            HEADER -> HeaderViewHolder(inflate(parent, R.layout.view_holder_header))
-            FOOTER -> FooterViewHolder(inflate(parent, R.layout.view_holder_footer))
-            STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
-            else -> throw  IllegalStateException("not support this view type:[$viewType]")
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
+            return when (viewType) {
+                STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
+                else -> NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
+            }
         }
     }
-}
-```
 
-At this point, the rest will be handed over to Sange!
 
-Result:
+    ```
+
+### Triple Kill
+
+- Refresh and retry
+
+    The Sange DataSource provides **invalidate()** and **retry()** methods.
+    When the data needs to be refreshed, the **invalidate()** method can be called.
+    When the load fails and needs to be retried, it is called. **retry()** method.
+
+- Custom DiffCallback
+
+    Sange uses DiffUtil to update RecyclerView efficiently.
+    You can change the comparison logic according to your actual situation:
+
+    ```kotlin
+    class NormalItem(val i: Int) : SangeItem {
+
+        override fun areContentsTheSame(other: Differ): Boolean {
+            //use your own diff logic
+            //...
+        }
+
+        override fun areItemsTheSame(other: Differ): Boolean {
+            //use your own diff logic
+            //...
+        }
+
+        override fun getChangePayload(other: Differ): Any? {
+            //...
+        }
+    }
+    ```
+
+## END
 
 ![](https://github.com/ssseasonnn/Sange/raw/master/multi.gif)
+
 
 ### License
 

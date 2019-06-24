@@ -7,7 +7,7 @@ const val HEADER = 1
 const val FOOTER = 2
 const val STATE = 3
 
-open class NormalItem(val i: Int) : SangeItem {
+class NormalItem(val i: Int) : SangeItem {
     override fun viewType() = NORMAL
 
     override fun toString() = "Item $i"

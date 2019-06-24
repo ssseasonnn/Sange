@@ -94,15 +94,14 @@ dependencies {
     数据加载完成后, 只需调用LoadCallback的setResult(list)方法即可, 散华会替你做好其他的一切工作,
     包括线程切换,通知界面更新等, 你需要做的, 仅仅只是关注于数据的加载.
     
-- 接下来创建一个你自己的Adapter,在此之前,我们先创建一个自己的ViewHolder吧.
-通过继承散华提供的**SangeViewHolder**, 你可以省略很多其他繁琐的工作.
+- 接下来创建一个用于展示的ViewHolder吧, 通过继承散华提供的**SangeViewHolder**, 你可以省略很多其他繁琐的工作.
 
     例如:
-    
+
     ```kotlin
     class NormalViewHolder(containerView: View) :
             SangeViewHolder<SangeItem>(containerView) {
-    
+
         override fun onBind(t: SangeItem) {
             t as NormalItem
             tv_normal_content.text = t.toString()
@@ -113,11 +112,11 @@ dependencies {
 - 下一步就是创建一个你自己的Adapter,通过继承散华提供的**SangeMultiAdapter**, 你可以轻松的将DataSource结合起来.
 
     例如:
-    
+
     ```kotlin
     class DemoAdapter(dataSource: DataSource<SangeItem>) :
             SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
-    
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
             return NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
         }
@@ -147,44 +146,44 @@ dependencies {
     > 如你所见, 我们同样实现了**SangeItem**接口, 并且实现了viewType方法, 在该方法中返回了一个新的Type类型
 
 - 接着我们稍微改造一下DataSource,我们实现一个额外的方法: **onStateChanged(newState)**.
-    
+
     ```kotlin
     class DemoDataSource : MultiDataSource<SangeItem>() {
-    
+
         override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
             //...
         }
-    
+
         override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
             //...
         }
-    
+
         override fun onStateChanged(newState: Int) {
             //利用DataSource的setState方法, 添加一个额外的状态Item
             setState(StateItem(state = newState, retry = ::retry))
         }
     }
     ```
-    
+
     这个方法会在分页加载的不同阶段来调用,用来告诉我们目前DataSource的状态, 例如加载中, 加载失败, 加载成功等.
     通过实现这个方法, 我们便可以自行控制加载状态的显示与否, 以及对显示的样式进行定制.
-    
+
     如上所示, 我们添加了一个用来表示状态的数据Item项.
-    
+
 - 同样的, 我们需要一个渲染State的ViewHolder:
 
     ```kotlin
     class StateViewHolder(containerView: View) :
             SangeViewHolder<SangeItem>(containerView) {
-    
+
         override fun onBind(t: SangeItem) {
             super.onBind(t)
             t as StateItem
-    
+
             tv_state_content.setOnClickListener {
                 t.retry()
             }
-    
+
             when {
                 t.state == FetchingState.FETCHING -> {
                     state_loading.visibility = View.VISIBLE
@@ -206,13 +205,13 @@ dependencies {
         }
     }
     ```
-    
+
 - 最后,显示加载状态
 
     ```kotlin
     class DemoAdapter(dataSource: DataSource<SangeItem>) :
             SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
-    
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
             return when (viewType) {
                 STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
@@ -220,11 +219,41 @@ dependencies {
             }
         }
     }
-    
-    
+
+
     ```
-   
-### 最终效果图:
+
+### Triple Kill
+
+- 刷新与重试
+
+    散华的DataSource提供了 **invalidate()** 和 **retry()** 方法, 当需要刷新数据时, 调用 **invalidate()** 方法即可,
+    当加载失败需要重试时, 调用 **retry()** 方法即可
+
+- 定制DiffCallback
+
+    散华使用了DiffUtil来高效的更新RecyclerView,你可以根据你的实际情况来改变比较逻辑:
+
+    ```kotlin
+    class NormalItem(val i: Int) : SangeItem {
+
+        override fun areContentsTheSame(other: Differ): Boolean {
+            //use your own diff logic
+            //...
+        }
+
+        override fun areItemsTheSame(other: Differ): Boolean {
+            //use your own diff logic
+            //...
+        }
+
+        override fun getChangePayload(other: Differ): Any? {
+            //...
+        }
+    }
+    ```
+
+## END
     
 ![](https://github.com/ssseasonnn/Sange/raw/master/multi.gif)
     
