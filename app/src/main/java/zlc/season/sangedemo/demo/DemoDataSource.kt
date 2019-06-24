@@ -1,10 +1,10 @@
 package zlc.season.sangedemo.demo
 
 import android.arch.lifecycle.MutableLiveData
-import zlc.season.sange.MultiDataSource
+import zlc.season.sange.SangeDataSource
 import zlc.season.sange.SangeItem
 
-class DemoDataSource : MultiDataSource<SangeItem>() {
+class DemoDataSource : SangeDataSource<SangeItem>() {
     val refresh = MutableLiveData<Boolean>()
     var page = 0
 
