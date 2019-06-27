@@ -78,6 +78,8 @@ open class DataStorage<T> {
 
     fun getItem(position: Int) = items[position]
 
+    fun getItemList() = items
+
     fun indexItemOf(t: T): Int {
         return items.indexOf(t)
     }

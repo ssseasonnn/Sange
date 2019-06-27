@@ -45,6 +45,10 @@ open class SangeDataStorage<T> : DataStorage<T>() {
         headers[indexItemOf(old)] = new
     }
 
+    fun getHeader(position: Int) = headers[position]
+
+    fun getHeaders() = headers
+
     fun setHeader(index: Int, new: T) {
         headers[index] = new
     }
@@ -78,6 +82,10 @@ open class SangeDataStorage<T> : DataStorage<T>() {
     fun setFooter(index: Int, new: T) {
         footers[index] = new
     }
+
+    fun getFooter(position: Int) = footers[position]
+
+    fun getFooters() = footers
 
     fun footerSize() = footers.size
 

@@ -146,6 +146,12 @@ open class DataSource<T> {
         }
     }
 
+    fun getItems(): List<T> {
+        return assertMainThreadWithResult {
+            dataStorage.getItemList()
+        }
+    }
+
     /**
      * return item size
      */

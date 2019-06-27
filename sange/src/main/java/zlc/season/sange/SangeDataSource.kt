@@ -76,6 +76,18 @@ open class SangeDataSource<T> : DataSource<T>() {
         }
     }
 
+    fun getHeader(position: Int): T {
+        return assertMainThreadWithResult {
+            dataStorage.getHeader(position)
+        }
+    }
+
+    fun getHeaders(): List<T> {
+        return assertMainThreadWithResult {
+            dataStorage.getHeaders()
+        }
+    }
+
     /**
      * Clear headers
      */
@@ -164,6 +176,18 @@ open class SangeDataSource<T> : DataSource<T>() {
             if (!delay) {
                 notifySubmitList()
             }
+        }
+    }
+
+    fun getFooter(position: Int): T {
+        return assertMainThreadWithResult {
+            dataStorage.getFooter(position)
+        }
+    }
+
+    fun getFooters(): List<T> {
+        return assertMainThreadWithResult {
+            dataStorage.getFooters()
         }
     }
 
