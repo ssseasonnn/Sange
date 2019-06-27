@@ -200,7 +200,7 @@ open class DataSource<T> {
     internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         pagingListDiffer.adapter = adapter
         if (adapter != null) {
-            invalidate()
+            invalidate(false)
         }
     }
 
