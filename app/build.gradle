@@ -35,7 +35,8 @@ dependencies {
 
     implementation 'android.arch.lifecycle:extensions:1.1.1'
 
-    implementation 'com.github.ssseasonnn:Sange:1.0.2'
+    implementation 'com.github.ssseasonnn:Sange:1.0.5'
+//    implementation project(":sange")
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
