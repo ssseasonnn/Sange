@@ -5,7 +5,6 @@ import zlc.season.ironbranch.assertMainThreadWithResult
 import zlc.season.ironbranch.ensureMainThread
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
-import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class DataSource<T> {
@@ -182,13 +181,17 @@ open class DataSource<T> {
      * Use [loadInitial] for initial loading, use [LoadCallback] callback
      * to setItem the result after loading is complete.
      */
-    open fun loadInitial(loadCallback: LoadCallback<T>) {}
+    open fun loadInitial(loadCallback: LoadCallback<T>) {
+        loadCallback.setResult(emptyList())
+    }
 
     /**
      * Use [loadAfter] for load next page, use [LoadCallback] callback
      * to setItem the result after loading is complete.
      */
-    open fun loadAfter(loadCallback: LoadCallback<T>) {}
+    open fun loadAfter(loadCallback: LoadCallback<T>) {
+        loadCallback.setResult(emptyList())
+    }
 
     /**
      * Return total size, not just the size of items
@@ -300,10 +303,13 @@ open class DataSource<T> {
      */
     protected open fun onStateChanged(newState: Int) {}
 
-    open fun close() {
-        dataStorage.getItemList().forEach {
-            if (it is Closeable) {
-                it.close()
+    /**
+     * Clean up resources.
+     */
+    open fun cleanUp() {
+        dataStorage.toList().forEach {
+            if (it is Cleanable) {
+                it.cleanUp()
             }
         }
     }

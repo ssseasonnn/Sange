@@ -20,4 +20,8 @@ interface ViewType {
     }
 }
 
-interface SangeItem : Differ, ViewType
+interface Cleanable {
+    fun cleanUp() {}
+}
+
+interface SangeItem : Differ, ViewType, Cleanable

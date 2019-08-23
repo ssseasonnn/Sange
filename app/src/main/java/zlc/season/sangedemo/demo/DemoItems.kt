@@ -2,7 +2,6 @@ package zlc.season.sangedemo.demo
 
 import android.util.Log
 import zlc.season.sange.SangeItem
-import java.io.Closeable
 import kotlin.concurrent.thread
 
 const val NORMAL = 0
@@ -16,19 +15,17 @@ class NormalItem(val i: Int) : SangeItem {
     override fun toString() = "Item $i"
 }
 
-class HeaderItem(val i: Int) : SangeItem, Closeable {
-    override fun close() {
-        thread.interrupt()
-        stop = true
-    }
+class HeaderItem(val i: Int) : SangeItem {
 
-    val thread: Thread
+    private val thread: Thread
+
     var stop = false
 
     init {
+        //Test auto clean up!!
         thread = thread {
             for (i in 0..100) {
-                if (stop){
+                if (stop) {
                     break
                 }
                 Log.d("Sange", "$i")
@@ -36,6 +33,10 @@ class HeaderItem(val i: Int) : SangeItem, Closeable {
             }
         }
 
+    }
+
+    override fun cleanUp() {
+        stop = true
     }
 
     override fun viewType() = HEADER
