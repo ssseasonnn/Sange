@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_demo.*
 import zlc.season.sangedemo.R
 
@@ -17,8 +18,15 @@ class DemoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
+        val adapter = DemoAdapter(viewModel.dataSource)
+
         recycler_view.layoutManager = LinearLayoutManager(this)
-        recycler_view.adapter = DemoAdapter(viewModel.dataSource)
+        recycler_view.adapter = adapter
+
+//        val a = RecyclerView(this)
+//        root.addView(a)
+
+//        a.adapter = adapter
 
         swipe_refresh_layout.setOnRefreshListener {
             viewModel.refresh()

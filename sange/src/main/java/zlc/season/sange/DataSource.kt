@@ -5,6 +5,7 @@ import zlc.season.ironbranch.assertMainThreadWithResult
 import zlc.season.ironbranch.ensureMainThread
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
+import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class DataSource<T> {
@@ -298,6 +299,14 @@ open class DataSource<T> {
      *  [FetchingState.DONE_FETCHING], [FetchingState.READY_TO_FETCH]
      */
     protected open fun onStateChanged(newState: Int) {}
+
+    open fun close() {
+        dataStorage.getItemList().forEach {
+            if (it is Closeable) {
+                it.close()
+            }
+        }
+    }
 
     private fun isInvalid(): Boolean {
         return invalid.get()
