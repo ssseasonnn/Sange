@@ -19,7 +19,11 @@ open class SangeDataStorage<T> : DataStorage<T>() {
 
     override fun clearAll() {
         super.clearAll()
+
+        headers.cleanUp()
         headers.clear()
+
+        footers.cleanUp()
         footers.clear()
     }
 
@@ -35,14 +39,21 @@ open class SangeDataStorage<T> : DataStorage<T>() {
 
     fun addHeaders(position: Int, t: List<T>) = headers.addAll(position, t)
 
-    fun removeHeaderAt(position: Int) = headers.removeAt(position)
+    fun removeHeaderAt(position: Int) {
+        val removed = headers.removeAt(position)
+        removed.cleanUpItem()
+    }
 
-    fun removeHeader(t: T) = headers.remove(t)
+    fun removeHeader(t: T) {
+        t.cleanUpItem()
+        headers.remove(t)
+    }
 
     fun indexHeaderOf(t: T) = headers.indexOf(t)
 
     fun setHeader(old: T, new: T) {
-        headers[indexItemOf(old)] = new
+        old.cleanUpItem()
+        headers[indexHeaderOf(old)] = new
     }
 
     fun getHeader(position: Int) = headers[position]
@@ -50,12 +61,17 @@ open class SangeDataStorage<T> : DataStorage<T>() {
     fun getHeaders() = headers
 
     fun setHeader(index: Int, new: T) {
+        val old = headers[index]
+        old.cleanUpItem()
         headers[index] = new
     }
 
     fun headerSize() = headers.size
 
-    fun clearHeader() = headers.clear()
+    fun clearHeader() {
+        headers.cleanUp()
+        headers.clear()
+    }
 
 
     /**
@@ -69,17 +85,28 @@ open class SangeDataStorage<T> : DataStorage<T>() {
 
     fun addFooters(position: Int, t: List<T>) = footers.addAll(position, t)
 
-    fun removeFooterAt(position: Int) = footers.removeAt(position)
+    fun removeFooterAt(position: Int) {
+        val removed = footers.removeAt(position)
+        removed.cleanUpItem()
+    }
 
-    fun removeFooter(t: T) = footers.remove(t)
+    fun removeFooter(t: T) {
+        t.cleanUpItem()
+        footers.remove(t)
+    }
 
     fun indexFooterOf(t: T) = footers.indexOf(t)
 
     fun setFooter(old: T, new: T) {
-        footers[indexItemOf(old)] = new
+        old.cleanUpItem()
+        footers[indexFooterOf(old)] = new
     }
 
     fun setFooter(index: Int, new: T) {
+        //clean up resource before set new footer
+        val old = footers[index]
+        old.cleanUpItem()
+
         footers[index] = new
     }
 
@@ -89,5 +116,9 @@ open class SangeDataStorage<T> : DataStorage<T>() {
 
     fun footerSize() = footers.size
 
-    fun clearFooter() = footers.clear()
+    fun clearFooter() {
+        //clean up resource before clear
+        footers.cleanUp()
+        footers.clear()
+    }
 }

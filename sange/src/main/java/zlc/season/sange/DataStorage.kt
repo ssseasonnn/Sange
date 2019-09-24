@@ -2,6 +2,8 @@ package zlc.season.sange
 
 open class DataStorage<T> {
     protected val items = mutableListOf<T>()
+
+    //indicate fetching state
     protected var status: T? = null
 
     open fun toList(): List<T> {
@@ -16,11 +18,16 @@ open class DataStorage<T> {
     }
 
     open fun clearAll() {
+        //clean up Item
+        items.cleanUp()
         items.clear()
+
+        status.cleanUpItem()
         status = null
     }
 
     fun clearItem() {
+        items.cleanUp()
         items.clear()
     }
 
@@ -50,18 +57,21 @@ open class DataStorage<T> {
 
     fun removeItemAt(position: Int) {
         try {
-            items.removeAt(position)
+            val removed = items.removeAt(position)
+            removed.cleanUpItem()
         } catch (t: Throwable) {
             t.printStackTrace()
         }
     }
 
     fun removeItem(t: T) {
+        t.cleanUpItem()
         items.remove(t)
     }
 
     fun setItem(old: T, new: T) {
         try {
+            old.cleanUpItem()
             items[indexItemOf(old)] = new
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -70,6 +80,8 @@ open class DataStorage<T> {
 
     fun setItem(index: Int, new: T) {
         try {
+            val old = items[index]
+            old.cleanUpItem()
             items[index] = new
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -88,10 +100,14 @@ open class DataStorage<T> {
      *  Set state
      */
     fun setState(t: T?) {
+        val old = status
+        old.cleanUpItem()
         status = t
     }
 
     fun getState(): T? {
         return status
     }
+
+
 }

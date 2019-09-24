@@ -307,11 +307,7 @@ open class DataSource<T> {
      * Clean up resources.
      */
     open fun cleanUp() {
-        dataStorage.toList().forEach {
-            if (it is Cleanable) {
-                it.cleanUp()
-            }
-        }
+        dataStorage.toList().cleanUp()
     }
 
     private fun isInvalid(): Boolean {
