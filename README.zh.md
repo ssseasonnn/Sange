@@ -4,20 +4,21 @@
 
 # Sange(散华)
 
+
+
 *Read this in other languages: [中文](README.zh.md), [English](README.md)*
 
-一个快速实现RecyclerView分页加载的轻量级库.
-
-
 > 物品介绍：
->
-> 散华是一件异常精准的武器。它具有不可思议的灵性，就好像它会自己寻找对手的弱点进行攻击。
->
-> 增加16点的力量。
->
-> 增加10点的攻击力。
->
-> 残废（被动）：在攻击中有15%的几率使目标残废。残废效果降低目标20%的移动速度，持续4秒。
+> 散华是RecyclerView的一个多功能的Adapter.
+> 
+> 功能介绍:
+> - 支持初始化数据加载
+> - 支持数据分页加载
+> - 支持MultiViewType
+> - 支持Header和Footer
+> - 支持DiffUtil
+> - 支持Loading State
+> - 支持CleanUp, 释放资源避免内存泄漏
 
 ## Prepare
 
@@ -44,74 +45,55 @@ dependencies {
 
 ### First Blood
 
-- 散华核心的功能是**DataSource**, 利用它,只需几个简单的步骤,即可轻松实现数据的初始化及分页加载.
+基本使用:
 
-    在此之前, 我们得先定义好我们的数据类型,记得实现**SangeItem**接口 例如:
-    
-    ```kotlin
-    class NormalItem(val number: Int): SangeItem
-    ```  
-
-- 接下来创建你自己的DataSource.
-
-    如下所示,我们继承了**MultiDataSource**, 并把**SangeItem**当作泛型参数, 然后实现**loadInitial**和**loadAfter**方法:
+- 自定义数据类型, 并实现**SangeItem**接口
 
     ```kotlin
-    class DemoDataSource : MultiDataSource<SangeItem>() {
+    class NormalItem(val i: Int) : SangeItem
+    ```
+
+- 创建DataSource, 重写**loadInitial**和**loadAfter**方法,
+它们分别会在页面初始化和需要加载下一页数据时自动触发.
+
+    ```kotlin
+    class DemoDataSource : SangeDataSource<SangeItem>() {
     
         override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
-    
-            //loadInitial 将会在子线程中调用, 因此无需担心任何耗时操作
-            Thread.sleep(2000)
-    
-            // 加载数据
+            //加载数据
             val items = mutableListOf<SangeItem>()
             for (i in 0 until 10) {
                 items.add(NormalItem(i))
             }
-    
-            //将加载之后的数据传递给 LoadCallback, 即可轻松更新RecyclerView
+          
+            //设置初始化加载结果
             loadCallback.setResult(items)
+          
+            //显示空白页面
+            //loadCallback.setResult(emptyList())
+          
+            //显示加载失败页面
+            //loadCallback.setResult(null)
         }
     
         override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
-            //loadAfter 将会在子线程中调用, 因此无需担心任何耗时操作
-            Thread.sleep(2000)
-    
-            val items = mutableListOf<SangeItem>()
-            for (i in page * 10 until (page + 1) * 10) {
-                items.add(NormalItem(i))
-            }
-    
+            //...
+          
+            //设置分页加载结果
             loadCallback.setResult(items)
-        }
-    }
-    
-    ```
-
-    loadInitial和loadAfter方法都将在子线程中调用, 因此无需担心在这两个方法中做的任何耗时操作.
-
-    数据加载完成后, 只需调用LoadCallback的setResult(list)方法即可, 散华会替你做好其他的一切工作,
-    包括线程切换,通知界面更新等, 你需要做的, 仅仅只是关注于数据的加载.
-    
-- 接下来创建一个用于展示的ViewHolder吧, 通过继承散华提供的**SangeViewHolder**, 你可以省略很多其他繁琐的工作.
-
-    例如:
-
-    ```kotlin
-    class NormalViewHolder(containerView: View) :
-            SangeViewHolder<SangeItem>(containerView) {
-
-        override fun onBind(t: SangeItem) {
-            t as NormalItem
-            tv_normal_content.text = t.toString()
+          
+            //停止分页加载
+            //loadCallback.setResult(emptyList())
+          
+            //显示分页加载失败
+            //loadCallback.setResult(null)
         }
     }
     ```
 
-- 下一步就是创建一个你自己的Adapter,通过继承散华提供的**SangeMultiAdapter**, 你可以轻松的将DataSource结合起来.
+    > loadInitial和loadAfter方法都将在子线程中调用, 因此无需担心在这两个方法中做的任何耗时操作.
 
-    例如:
+- 创建Adapter,并关联DataSource.
 
     ```kotlin
     class DemoAdapter(dataSource: DataSource<SangeItem>) :
@@ -123,32 +105,23 @@ dependencies {
     }
     ```
 
-- 最后, 将RecyclerView和Adapter关联起来:
-
-    ```kotlin
-    recycler_view.layoutManager = LinearLayoutManager(this)
-    recycler_view.adapter = DemoAdapter(DemoDataSource())
-    ```
-
-    就是这样, 你无需关心分页的逻辑, 你只需要专注于你真正应该关注的东西: 加载数据, 其他的就交给散华吧!
-
 ### Double Kill
 
-到目前为止我们一切进展很顺利, 可是似乎缺少了分页加载的状态显示, 下面来实现它吧.
+自定义分页加载状态
 
-- 为了显示加载的状态,我们先创建一个表示状态的数据类型:
+- 创建状态的数据类型:
 
     ```kotlin
     class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
         override fun viewType() = STATE
     }
     ```
-    > 如你所见, 我们同样实现了**SangeItem**接口, 并且实现了viewType方法, 在该方法中返回了一个新的Type类型
+    > 同样实现**SangeItem**接口, 并且重写viewType方法, 在该方法中返回了一个新的Type类型
 
-- 接着我们稍微改造一下DataSource,我们实现一个额外的方法: **onStateChanged(newState)**.
+- 重写DataSource中的 **onStateChanged(newState)** 方法, 该方法会根据加载中的状态进行调用.
 
     ```kotlin
-    class DemoDataSource : MultiDataSource<SangeItem>() {
+    class DemoDataSource : SangeDataSource<SangeItem>() {
 
         override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
             //...
@@ -165,12 +138,7 @@ dependencies {
     }
     ```
 
-    这个方法会在分页加载的不同阶段来调用,用来告诉我们目前DataSource的状态, 例如加载中, 加载失败, 加载成功等.
-    通过实现这个方法, 我们便可以自行控制加载状态的显示与否, 以及对显示的样式进行定制.
-
-    如上所示, 我们添加了一个用来表示状态的数据Item项.
-
-- 同样的, 我们需要一个渲染State的ViewHolder:
+- 提供一个渲染State的ViewHolder:
 
     ```kotlin
     class StateViewHolder(containerView: View) :
@@ -179,28 +147,13 @@ dependencies {
         override fun onBind(t: SangeItem) {
             super.onBind(t)
             t as StateItem
-
-            tv_state_content.setOnClickListener {
-                t.retry()
-            }
-
+            
+           //设置状态视图
             when {
-                t.state == FetchingState.FETCHING -> {
-                    state_loading.visibility = View.VISIBLE
-                    tv_state_content.visibility = View.GONE
-                }
-                t.state == FetchingState.FETCHING_ERROR -> {
-                    state_loading.visibility = View.GONE
-                    tv_state_content.visibility = View.VISIBLE
-                }
-                t.state == FetchingState.DONE_FETCHING -> {
-                    state_loading.visibility = View.GONE
-                    tv_state_content.visibility = View.GONE
-                }
-                else -> {
-                    state_loading.visibility = View.GONE
-                    tv_state_content.visibility = View.GONE
-                }
+                t.state == FetchingState.FETCHING -> {}
+                t.state == FetchingState.FETCHING_ERROR -> {}
+                t.state == FetchingState.DONE_FETCHING -> {}
+                else -> {}
             }
         }
     }
@@ -219,7 +172,6 @@ dependencies {
             }
         }
     }
-
 
     ```
 
@@ -253,9 +205,40 @@ dependencies {
     }
     ```
 
-## END
+### Ultra Kill
+
+资源清理, SangeItem提供了**cleanUp** 方法, 该方法会在页面销毁和数据被清理时自动调用,
+因此你可以在此进行资源的释放, 以避免内存泄漏的风险.
+
+    ```kotlin
+    class NormalItem(val i: Int) : SangeItem {
     
-![](https://github.com/ssseasonnn/Sange/raw/master/multi.gif)
+        private val thread: Thread
+    
+        var stop = false
+    
+        init {
+            //Test auto clean up!!
+            thread = thread {
+                for (i in 0..100) {
+                    if (stop) {
+                        break
+                    }
+                    Log.d("Sange", "$i")
+                    Thread.sleep(1000)
+                }
+            }
+    
+        }
+    
+        override fun cleanUp() {
+            //释放线程资源
+            stop = true
+        }
+    }
+    ```
+
+## END
     
 
 ### License
