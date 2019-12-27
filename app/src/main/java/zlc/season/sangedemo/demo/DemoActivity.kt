@@ -1,11 +1,10 @@
 package zlc.season.sangedemo.demo
 
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_demo.*
 import zlc.season.sangedemo.R
 
@@ -20,7 +19,7 @@ class DemoActivity : AppCompatActivity() {
 
         val adapter = DemoAdapter(viewModel.dataSource)
 
-        recycler_view.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        recycler_view.layoutManager = LinearLayoutManager(this)
         recycler_view.adapter = adapter
 
 //        val a = RecyclerView(this)
