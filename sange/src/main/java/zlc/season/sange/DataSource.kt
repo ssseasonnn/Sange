@@ -1,6 +1,5 @@
 package zlc.season.sange
 
-import android.support.v7.widget.RecyclerView
 import zlc.season.ironbranch.assertMainThreadWithResult
 import zlc.season.ironbranch.ensureMainThread
 import zlc.season.ironbranch.ioThread
@@ -207,7 +206,7 @@ open class DataSource<T> {
         return pagingListDiffer.get(position)
     }
 
-    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
+    internal fun setAdapter(adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>?) {
         pagingListDiffer.adapter = adapter
         if (adapter != null) {
             invalidate(false)

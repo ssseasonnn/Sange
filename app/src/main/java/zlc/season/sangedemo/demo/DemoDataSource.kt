@@ -1,6 +1,6 @@
 package zlc.season.sangedemo.demo
 
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.MutableLiveData
 import zlc.season.sange.SangeDataSource
 import zlc.season.sange.SangeItem
 

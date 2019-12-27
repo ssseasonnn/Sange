@@ -1,9 +1,9 @@
 package zlc.season.sange
 
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.RecyclerView.Adapter
-import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.Adapter
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 abstract class SangeAdapter<T : Any, VH : ViewHolder>(
     protected open val dataSource: DataSource<T>

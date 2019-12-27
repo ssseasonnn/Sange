@@ -1,8 +1,8 @@
 package zlc.season.sange
 
 import android.annotation.SuppressLint
-import android.support.v7.util.DiffUtil
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import zlc.season.ironbranch.ioThread
 import zlc.season.ironbranch.mainThread
 import java.util.*
@@ -75,7 +75,10 @@ internal class SangeListDiffer<T> {
                     )
                 }
 
-                override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                override fun areContentsTheSame(
+                    oldItemPosition: Int,
+                    newItemPosition: Int
+                ): Boolean {
                     return diffCallback.areContentsTheSame(
                         oldList[oldItemPosition], newList[newItemPosition]
                     )
@@ -101,7 +104,7 @@ internal class SangeListDiffer<T> {
         // notify last, after list is updated
         currentList = Collections.unmodifiableList(newList)
         adapter?.let {
-            diffResult.dispatchUpdatesTo(adapter)
+            diffResult.dispatchUpdatesTo(it)
         }
     }
 
