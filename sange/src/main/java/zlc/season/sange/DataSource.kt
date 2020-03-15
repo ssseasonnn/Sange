@@ -163,7 +163,7 @@ open class DataSource<T> {
     /**
      * Set state
      */
-    fun setState(newState: T) {
+    fun setState(newState: T?) {
         ensureMainThread {
             dataStorage.setState(newState)
             notifySubmitList()
@@ -242,10 +242,14 @@ open class DataSource<T> {
         }
     }
 
+    open fun shouldLoadNext(position: Int): Boolean {
+        return position == size() - 1
+    }
+
     private fun dispatchLoadAround(position: Int) {
         if (isInvalid()) return
 
-        if (position == size() - 1) {
+        if (shouldLoadNext(position)) {
             if (fetchingState.isNotReady()) {
                 return
             }
