@@ -2,11 +2,9 @@ package zlc.season.sange
 
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
-import kotlinx.android.extensions.LayoutContainer
 
-open class SangeViewHolder<T>(override val containerView: View) :
-    RecyclerView.ViewHolder(containerView),
-    LayoutContainer {
+open class SangeViewHolder<T>(containerView: View) :
+    RecyclerView.ViewHolder(containerView) {
 
     open fun onBind(t: T) {}
 
