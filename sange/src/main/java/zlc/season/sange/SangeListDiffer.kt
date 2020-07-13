@@ -3,8 +3,8 @@ package zlc.season.sange
 import android.annotation.SuppressLint
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import zlc.season.ironbranch.ioThread
-import zlc.season.ironbranch.mainThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.*
 
 internal class SangeListDiffer<T> {
@@ -22,7 +22,11 @@ internal class SangeListDiffer<T> {
 
     internal fun get(position: Int) = currentList[position]
 
-    internal fun submitList(newList: List<T>, initial: Boolean = false) {
+    internal fun submitList(
+        newList: List<T>,
+        initial: Boolean = false,
+        submitNow: Boolean = false
+    ) {
         if (initial) {
             list = newList
             currentList = Collections.unmodifiableList(newList)
@@ -59,44 +63,54 @@ internal class SangeListDiffer<T> {
 
         val oldList = list
 
-        ioThread {
-            val result = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-                override fun getOldListSize(): Int {
-                    return oldList.size
-                }
-
-                override fun getNewListSize(): Int {
-                    return newList.size
-                }
-
-                override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                    return diffCallback.areItemsTheSame(
-                        oldList[oldItemPosition], newList[newItemPosition]
-                    )
-                }
-
-                override fun areContentsTheSame(
-                    oldItemPosition: Int,
-                    newItemPosition: Int
-                ): Boolean {
-                    return diffCallback.areContentsTheSame(
-                        oldList[oldItemPosition], newList[newItemPosition]
-                    )
-                }
-
-                override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
-                    return diffCallback.getChangePayload(
-                        oldList[oldItemPosition], newList[newItemPosition]
-                    )
-                }
-            })
-
-            mainThread {
-                if (mMaxScheduledGeneration == runGeneration) {
-                    latchList(newList, result)
+        if (submitNow) {
+            val result = calcDiffResult(oldList, newList)
+            if (mMaxScheduledGeneration == runGeneration) {
+                latchList(newList, result)
+            }
+        } else {
+            launchIo {
+                val result = calcDiffResult(oldList, newList)
+                withContext(Dispatchers.Main) {
+                    if (mMaxScheduledGeneration == runGeneration) {
+                        latchList(newList, result)
+                    }
                 }
             }
         }
+    }
+
+    private fun calcDiffResult(oldList: List<T>, newList: List<T>): DiffUtil.DiffResult {
+        return DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int {
+                return oldList.size
+            }
+
+            override fun getNewListSize(): Int {
+                return newList.size
+            }
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return diffCallback.areItemsTheSame(
+                    oldList[oldItemPosition], newList[newItemPosition]
+                )
+            }
+
+            override fun areContentsTheSame(
+                oldItemPosition: Int,
+                newItemPosition: Int
+            ): Boolean {
+                return diffCallback.areContentsTheSame(
+                    oldList[oldItemPosition], newList[newItemPosition]
+                )
+            }
+
+            override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+                return diffCallback.getChangePayload(
+                    oldList[oldItemPosition], newList[newItemPosition]
+                )
+            }
+        })
     }
 
     private fun latchList(newList: List<T>, diffResult: DiffUtil.DiffResult) {

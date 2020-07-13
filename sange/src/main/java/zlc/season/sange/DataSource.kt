@@ -1,9 +1,8 @@
 package zlc.season.sange
 
-import zlc.season.ironbranch.assertMainThreadWithResult
-import zlc.season.ironbranch.ensureMainThread
-import zlc.season.ironbranch.ioThread
-import zlc.season.ironbranch.mainThread
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class DataSource<T> {
@@ -38,9 +37,9 @@ open class DataSource<T> {
     /**
      * Notify submit list.
      */
-    fun notifySubmitList() {
+    fun notifySubmitList(submitNow: Boolean = false) {
         ensureMainThread {
-            pagingListDiffer.submitList(dataStorage.toList())
+            pagingListDiffer.submitList(dataStorage.toList(), submitNow = submitNow)
         }
     }
 
@@ -177,19 +176,17 @@ open class DataSource<T> {
     }
 
     /**
-     * Use [loadInitial] for initial loading, use [LoadCallback] callback
-     * to setItem the result after loading is complete.
+     * Initial loading
      */
-    open fun loadInitial(loadCallback: LoadCallback<T>) {
-        loadCallback.setResult(emptyList())
+    open suspend fun loadInitial(): List<T>? {
+        return emptyList()
     }
 
     /**
-     * Use [loadAfter] for load next page, use [LoadCallback] callback
-     * to setItem the result after loading is complete.
+     * Load next page
      */
-    open fun loadAfter(loadCallback: LoadCallback<T>) {
-        loadCallback.setResult(emptyList())
+    open suspend fun loadAfter(): List<T>? {
+        return emptyList()
     }
 
     /**
@@ -206,7 +203,7 @@ open class DataSource<T> {
         return pagingListDiffer.get(position)
     }
 
-    internal fun setAdapter(adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>?) {
+    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         pagingListDiffer.adapter = adapter
         if (adapter != null) {
             invalidate(false)
@@ -227,18 +224,15 @@ open class DataSource<T> {
             dataStorage.clearAll()
         }
 
-        ioThread {
-            loadInitial(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?) {
-                    mainThread {
-                        onLoadResult(data)
-                        invalid.compareAndSet(true, false)
-                        if (data == null) {
-                            retryFunc = { dispatchLoadInitial(clear) }
-                        }
-                    }
+        launchIo {
+            val result = loadInitial()
+            withContext(Main) {
+                onLoadResult(result)
+                invalid.compareAndSet(true, false)
+                if (result == null) {
+                    retryFunc = { dispatchLoadInitial(clear) }
                 }
-            })
+            }
         }
     }
 
@@ -260,21 +254,17 @@ open class DataSource<T> {
 
     private fun scheduleLoadAfter() {
         changeState(FetchingState.FETCHING)
-        ioThread {
-            loadAfter(object : LoadCallback<T> {
-                override fun setResult(data: List<T>?) {
-                    if (isInvalid()) return
 
-                    mainThread {
-                        if (isInvalid()) return@mainThread
-                        onLoadResult(data)
+        launchIo {
+            val result = loadAfter()
+            withContext(Main) {
+                if (isInvalid()) return@withContext
+                onLoadResult(result)
 
-                        if (data == null) {
-                            retryFunc = { scheduleLoadAfter() }
-                        }
-                    }
+                if (result == null) {
+                    retryFunc = { scheduleLoadAfter() }
                 }
-            })
+            }
         }
     }
 
@@ -315,9 +305,5 @@ open class DataSource<T> {
 
     private fun isInvalid(): Boolean {
         return invalid.get()
-    }
-
-    interface LoadCallback<T> {
-        fun setResult(data: List<T>?)
     }
 }
