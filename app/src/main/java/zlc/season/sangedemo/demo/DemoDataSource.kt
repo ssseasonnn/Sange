@@ -1,6 +1,7 @@
 package zlc.season.sangedemo.demo
 
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.delay
 import zlc.season.sange.SangeDataSource
 import zlc.season.sange.SangeItem
 
@@ -8,12 +9,12 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
     val refresh = MutableLiveData<Boolean>()
     var page = 0
 
-    override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
+    override suspend fun loadInitial(): List<SangeItem>? {
         page = 0
 
         refresh.postValue(true)
 
-        Thread.sleep(1500)
+        delay(1500)
         val headers = mutableListOf<SangeItem>()
         for (i in 0 until 2) {
             headers.add(HeaderItem(i))
@@ -22,7 +23,7 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
 
 
 
-        Thread.sleep(2000)
+        delay(2000)
         val footers = mutableListOf<SangeItem>()
         for (i in 0 until 2) {
             footers.add(FooterItem(i))
@@ -30,34 +31,33 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
         addFooters(footers)
 
 
-        Thread.sleep(2000)
+        delay(2000)
         val items = mutableListOf<SangeItem>()
         for (i in 0 until 10) {
             items.add(NormalItem(i))
         }
-        loadCallback.setResult(items)
-
 
         refresh.postValue(false)
+
+        return items
     }
 
-    override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
+    override suspend fun loadAfter(): List<SangeItem>? {
         page++
 
         //Mock load failed.
         //模拟加载失败.
         if (page % 3 == 0) {
-            loadCallback.setResult(null)
-            return
+            return null
         }
 
-        Thread.sleep(1500)
+        delay(1500)
         val items = mutableListOf<SangeItem>()
         for (i in page * 10 until (page + 1) * 10) {
             items.add(NormalItem(i))
         }
 
-        loadCallback.setResult(items)
+        return items
     }
 
     override fun onStateChanged(newState: Int) {
