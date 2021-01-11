@@ -3,15 +3,16 @@ package zlc.season.sangedemo
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_main.*
+import zlc.season.sangedemo.databinding.ActivityMainBinding
 import zlc.season.sangedemo.demo.DemoActivity
 
 class MainActivity : AppCompatActivity() {
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        btn_normal.setOnClickListener {
+        setContentView(binding.root)
+        binding.btnNormal.setOnClickListener {
             startActivity(Intent(this, DemoActivity::class.java))
         }
     }

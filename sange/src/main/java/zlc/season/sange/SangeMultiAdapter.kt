@@ -7,14 +7,14 @@ abstract class SangeMultiAdapter<T : SangeItem, VH : SangeViewHolder<T>>(dataSou
     SangeAdapter<T, VH>(dataSource) {
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.onBind(getItem(position))
+        holder.onBind(position, getItem(position))
     }
 
     override fun onBindViewHolder(holder: VH, position: Int, payloads: MutableList<Any>) {
         if (payloads.isEmpty()) {
             onBindViewHolder(holder, position)
         } else {
-            holder.onBindPayload(getItem(position), payloads)
+            holder.onBindPayload(position, getItem(position), payloads)
         }
     }
 
@@ -24,19 +24,19 @@ abstract class SangeMultiAdapter<T : SangeItem, VH : SangeViewHolder<T>>(dataSou
 
     override fun onViewAttachedToWindow(holder: VH) {
         holder.checkPosition {
-            onAttach(getItem(it))
+            onAttach(it, getItem(it))
         }
     }
 
     override fun onViewDetachedFromWindow(holder: VH) {
         holder.checkPosition {
-            onDetach(getItem(it))
+            onDetach(it, getItem(it))
         }
     }
 
     override fun onViewRecycled(holder: VH) {
         holder.checkPosition {
-            onRecycled(getItem(it))
+            onRecycled(it, getItem(it))
         }
     }
 

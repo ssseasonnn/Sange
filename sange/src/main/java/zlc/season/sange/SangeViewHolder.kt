@@ -6,13 +6,13 @@ import android.view.View
 open class SangeViewHolder<T>(containerView: View) :
     RecyclerView.ViewHolder(containerView) {
 
-    open fun onBind(t: T) {}
+    open fun onBind(position: Int, t: T) {}
 
-    open fun onBindPayload(t: T, payload: MutableList<Any>) {}
+    open fun onBindPayload(position: Int, t: T, payload: MutableList<Any>) {}
 
-    open fun onAttach(t: T) {}
+    open fun onAttach(position: Int, t: T) {}
 
-    open fun onDetach(t: T) {}
+    open fun onDetach(position: Int, t: T) {}
 
-    open fun onRecycled(t: T) {}
+    open fun onRecycled(position: Int, t: T) {}
 }
