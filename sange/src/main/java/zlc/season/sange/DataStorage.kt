@@ -6,6 +6,10 @@ open class DataStorage<T> {
     //indicate fetching state
     protected var status: T? = null
 
+    open fun totalSize(): Int {
+        return toList().size
+    }
+
     open fun toList(): List<T> {
         val result = mutableListOf<T>()
         result.addAll(items)

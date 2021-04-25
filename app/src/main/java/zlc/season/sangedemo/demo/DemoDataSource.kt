@@ -10,6 +10,7 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
     var page = 0
 
     override suspend fun loadInitial(): List<SangeItem>? {
+        println("load init")
         page = 0
 
         refresh.postValue(true)
@@ -33,7 +34,7 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
 
         delay(2000)
         val items = mutableListOf<SangeItem>()
-        for (i in 0 until 10) {
+        for (i in 0 until 2) {
             items.add(NormalItem(i))
         }
 
@@ -43,6 +44,7 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
     }
 
     override suspend fun loadAfter(): List<SangeItem>? {
+        println("load after")
         page++
 
         //Mock load failed.
@@ -53,7 +55,7 @@ class DemoDataSource : SangeDataSource<SangeItem>() {
 
         delay(1500)
         val items = mutableListOf<SangeItem>()
-        for (i in page * 10 until (page + 1) * 10) {
+        for (i in page * 2 until (page + 1) * 2) {
             items.add(NormalItem(i))
         }
 

@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-fun <T> T?.cleanUpItem() {
+internal fun <T> T?.cleanUpItem() {
     this?.let {
         if (this is Cleanable) {
             this.cleanUp()
@@ -14,17 +14,17 @@ fun <T> T?.cleanUpItem() {
     }
 }
 
-fun <T> List<T>.cleanUp() {
+internal fun <T> List<T>.cleanUp() {
     this.forEach {
         it.cleanUpItem()
     }
 }
 
-fun isMainThread(): Boolean {
+internal fun isMainThread(): Boolean {
     return Looper.getMainLooper().thread === Thread.currentThread()
 }
 
-fun ensureMainThread(block: () -> Unit) {
+internal fun ensureMainThread(block: () -> Unit) {
     if (isMainThread()) {
         block()
     } else {
@@ -34,7 +34,7 @@ fun ensureMainThread(block: () -> Unit) {
     }
 }
 
-fun <T> assertMainThreadWithResult(block: () -> T): T {
+internal fun <T> assertMainThreadWithResult(block: () -> T): T {
     if (isMainThread()) {
         return block()
     } else {
@@ -42,13 +42,13 @@ fun <T> assertMainThreadWithResult(block: () -> T): T {
     }
 }
 
-fun launchIo(block: suspend () -> Unit) {
+internal fun launchIo(block: suspend () -> Unit) {
     GlobalScope.launch(IO) {
         block()
     }
 }
 
-fun launchMain(block: suspend () -> Unit) {
+internal fun launchMain(block: suspend () -> Unit) {
     GlobalScope.launch(Main) {
         block()
     }

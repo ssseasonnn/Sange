@@ -8,9 +8,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 open class DataSource<T> {
     protected open val dataStorage = DataStorage<T>()
 
+    private val pagingListDiffer = SangeListDiffer<T>()
+
     private val fetchingState = FetchingState()
     private val invalid = AtomicBoolean(false)
-    private var pagingListDiffer = SangeListDiffer<T>()
 
     private var retryFunc: () -> Unit = {}
 
@@ -43,9 +44,8 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * Clear all data from the current data source.
-     */
+    fun totalSize(): Int = dataStorage.totalSize()
+
     fun clearAll(delay: Boolean = false) {
         ensureMainThread {
             dataStorage.clearAll()
@@ -55,9 +55,6 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * Clear items, only items.
-     */
     fun clearItem(delay: Boolean = false) {
         ensureMainThread {
             dataStorage.clearItem()
@@ -135,9 +132,6 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * return item for [position]
-     */
     fun getItem(position: Int): T {
         return assertMainThreadWithResult {
             dataStorage.getItem(position)
@@ -150,18 +144,12 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * return item size
-     */
     fun itemSize(): Int {
         return assertMainThreadWithResult {
             dataStorage.itemSize()
         }
     }
 
-    /**
-     * Set state
-     */
     fun setState(newState: T?) {
         ensureMainThread {
             dataStorage.setState(newState)
@@ -175,48 +163,12 @@ open class DataSource<T> {
         }
     }
 
-    /**
-     * Initial loading
-     */
     open suspend fun loadInitial(): List<T>? {
         return emptyList()
     }
 
-    /**
-     * Load next page
-     */
     open suspend fun loadAfter(): List<T>? {
         return emptyList()
-    }
-
-    /**
-     * Return total size, not just the size of items
-     */
-    fun size(): Int {
-        return pagingListDiffer.size()
-    }
-
-    /**
-     * Return data for [position]
-     */
-    fun get(position: Int): T {
-        return pagingListDiffer.get(position)
-    }
-
-    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
-        pagingListDiffer.adapter = adapter
-        if (adapter != null) {
-            invalidate(false)
-        }
-    }
-
-    internal fun getItemCount(): Int {
-        return size()
-    }
-
-    internal fun getItemInner(position: Int): T {
-        dispatchLoadAround(position)
-        return this.get(position)
     }
 
     private fun dispatchLoadInitial(clear: Boolean) {
@@ -237,7 +189,7 @@ open class DataSource<T> {
     }
 
     open fun shouldLoadNext(position: Int): Boolean {
-        return position == size() - 1
+        return position == totalSize() - 1
     }
 
     private fun dispatchLoadAround(position: Int) {
@@ -305,5 +257,22 @@ open class DataSource<T> {
 
     private fun isInvalid(): Boolean {
         return invalid.get()
+    }
+
+    // internal function for adapter
+    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
+        pagingListDiffer.adapter = adapter
+        if (adapter != null) {
+            invalidate(false)
+        }
+    }
+
+    internal fun getSizeForAdapter(): Int {
+        return pagingListDiffer.size()
+    }
+
+    internal fun getItemForAdapter(position: Int): T {
+        dispatchLoadAround(position)
+        return pagingListDiffer.get(position)
     }
 }

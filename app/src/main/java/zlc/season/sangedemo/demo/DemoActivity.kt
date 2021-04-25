@@ -28,4 +28,9 @@ class DemoActivity : AppCompatActivity() {
             binding.swipeRefreshLayout.isRefreshing = it
         })
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.dataSource.cleanUp()
+    }
 }
