@@ -3,8 +3,8 @@ package zlc.season.sange
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 
-abstract class SangeMultiAdapter<T : SangeItem, VH : SangeViewHolder<T>>(dataSource: DataSource<T>) :
-    SangeAdapter<T, VH>(dataSource) {
+abstract class SangeMultiAdapter<T : SangeItem, VH : SangeViewHolder<T>>(dataSource: DataSource<T>, shouldInvalidate: Boolean = true) :
+        SangeAdapter<T, VH>(dataSource, shouldInvalidate) {
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.onBind(position, getItem(position))

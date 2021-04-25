@@ -260,10 +260,14 @@ open class DataSource<T> {
     }
 
     // internal function for adapter
-    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
+    internal fun setAdapter(adapter: RecyclerView.Adapter<*>?, shouldInvalidate: Boolean) {
         pagingListDiffer.adapter = adapter
         if (adapter != null) {
-            invalidate(false)
+            if (shouldInvalidate) {
+                invalidate(false)
+            } else {
+                notifySubmitList()
+            }
         }
     }
 

@@ -5,17 +5,18 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 abstract class SangeAdapter<T : Any, VH : ViewHolder>(
-        protected open val dataSource: DataSource<T>
+        protected open val dataSource: DataSource<T>,
+        private val shouldInvalidate: Boolean
 ) : Adapter<VH>() {
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
-        dataSource.setAdapter(this)
+        dataSource.setAdapter(this, shouldInvalidate)
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
-        dataSource.setAdapter(null)
+        dataSource.setAdapter(null, false)
     }
 
     open fun getItem(position: Int): T {
