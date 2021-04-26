@@ -3,11 +3,12 @@ package zlc.season.sange
 import android.annotation.SuppressLint
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class SangeListDiffer<T> {
+class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
     var adapter: RecyclerView.Adapter<*>? = null
 
     private val diffCallback = PagingDiffCallback<T>()
@@ -25,7 +26,7 @@ class SangeListDiffer<T> {
     internal fun submitList(
             newList: List<T>,
             initial: Boolean = false,
-            submitNow: Boolean = false
+            submitNow: Boolean = false,
     ) {
         if (initial) {
             list = newList
@@ -69,7 +70,7 @@ class SangeListDiffer<T> {
                 latchList(newList, result)
             }
         } else {
-            launchIo {
+            coroutineScope.launchIo {
                 val result = calcDiffResult(oldList, newList)
                 withContext(Dispatchers.Main) {
                     if (mMaxScheduledGeneration == runGeneration) {
@@ -98,7 +99,7 @@ class SangeListDiffer<T> {
 
             override fun areContentsTheSame(
                     oldItemPosition: Int,
-                    newItemPosition: Int
+                    newItemPosition: Int,
             ): Boolean {
                 return diffCallback.areContentsTheSame(
                         oldList[oldItemPosition], newList[newItemPosition]

@@ -1,11 +1,12 @@
 package zlc.season.sangedemo.demo
 
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import zlc.season.sange.SangeDataSource
 import zlc.season.sange.SangeItem
 
-class DemoDataSource : SangeDataSource<SangeItem>() {
+class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem>(coroutineScope) {
     val refresh = MutableLiveData<Boolean>()
     var page = 0
 

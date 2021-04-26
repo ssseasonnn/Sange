@@ -1,14 +1,16 @@
 package zlc.season.sange
 
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class DataSource<T> {
+open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalScope) {
     protected open val dataStorage = DataStorage<T>()
 
-    private val pagingListDiffer = SangeListDiffer<T>()
+    private val pagingListDiffer = SangeListDiffer<T>(coroutineScope)
 
     private val fetchingState = FetchingState()
     private val invalid = AtomicBoolean(false)
@@ -19,7 +21,7 @@ open class DataSource<T> {
      * Retry fetching.
      */
     fun retry() {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             retryFunc()
         }
     }
@@ -28,7 +30,7 @@ open class DataSource<T> {
      * Invalidate the current data source.
      */
     fun invalidate(clear: Boolean = true) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             if (invalid.compareAndSet(false, true)) {
                 dispatchLoadInitial(clear)
             }
@@ -39,7 +41,7 @@ open class DataSource<T> {
      * Notify submit list.
      */
     fun notifySubmitList(submitNow: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             pagingListDiffer.submitList(dataStorage.toList(), submitNow = submitNow)
         }
     }
@@ -47,7 +49,7 @@ open class DataSource<T> {
     fun totalSize(): Int = dataStorage.totalSize()
 
     fun clearAll(delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.clearAll()
             if (!delay) {
                 notifySubmitList()
@@ -56,7 +58,7 @@ open class DataSource<T> {
     }
 
     fun clearItem(delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.clearItem()
             if (!delay) {
                 notifySubmitList()
@@ -65,7 +67,7 @@ open class DataSource<T> {
     }
 
     fun addItem(t: T, position: Int = -1, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             if (position > -1) {
                 dataStorage.addItem(position, t)
             } else {
@@ -79,7 +81,7 @@ open class DataSource<T> {
     }
 
     fun addItems(list: List<T>, position: Int = -1, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             if (position > -1) {
                 dataStorage.addItems(position, list)
             } else {
@@ -92,7 +94,7 @@ open class DataSource<T> {
     }
 
     fun removeItemAt(position: Int, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.removeItemAt(position)
             if (!delay) {
                 notifySubmitList()
@@ -101,7 +103,7 @@ open class DataSource<T> {
     }
 
     fun removeItem(t: T, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             val index = dataStorage.indexItemOf(t)
             if (index != -1) {
                 dataStorage.removeItem(t)
@@ -115,7 +117,7 @@ open class DataSource<T> {
     }
 
     fun setItem(old: T, new: T, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.setItem(old, new)
             if (!delay) {
                 notifySubmitList()
@@ -124,7 +126,7 @@ open class DataSource<T> {
     }
 
     fun setItem(index: Int, new: T, delay: Boolean = false) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.setItem(index, new)
             if (!delay) {
                 notifySubmitList()
@@ -151,7 +153,7 @@ open class DataSource<T> {
     }
 
     fun setState(newState: T?) {
-        ensureMainThread {
+        coroutineScope.ensureMainThread {
             dataStorage.setState(newState)
             notifySubmitList()
         }
@@ -176,7 +178,7 @@ open class DataSource<T> {
             dataStorage.clearAll()
         }
 
-        launchIo {
+        coroutineScope.launchIo {
             val result = loadInitial()
             withContext(Main) {
                 onLoadResult(result)
@@ -207,7 +209,7 @@ open class DataSource<T> {
     private fun scheduleLoadAfter() {
         changeState(FetchingState.FETCHING)
 
-        launchIo {
+        coroutineScope.launchIo {
             val result = loadAfter()
             withContext(Main) {
                 if (isInvalid()) return@withContext

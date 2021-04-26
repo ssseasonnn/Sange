@@ -1,9 +1,9 @@
 package zlc.season.sange
 
 import android.os.Looper
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 internal fun <T> T?.cleanUpItem() {
@@ -24,11 +24,11 @@ internal fun isMainThread(): Boolean {
     return Looper.getMainLooper().thread === Thread.currentThread()
 }
 
-internal fun ensureMainThread(block: () -> Unit) {
+internal fun CoroutineScope.ensureMainThread(block: () -> Unit) {
     if (isMainThread()) {
         block()
     } else {
-        GlobalScope.launch(Main) {
+        launch(Main) {
             block()
         }
     }
@@ -42,14 +42,14 @@ internal fun <T> assertMainThreadWithResult(block: () -> T): T {
     }
 }
 
-internal fun launchIo(block: suspend () -> Unit) {
-    GlobalScope.launch(IO) {
+internal fun CoroutineScope.launchIo(block: suspend () -> Unit) {
+    launch(IO) {
         block()
     }
 }
 
-internal fun launchMain(block: suspend () -> Unit) {
-    GlobalScope.launch(Main) {
+internal fun CoroutineScope.launchMain(block: suspend () -> Unit) {
+    launch(Main) {
         block()
     }
 }
