@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -178,15 +179,17 @@ open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalSc
             dataStorage.clearAll()
         }
 
-        coroutineScope.launchIo {
+        coroutineScope.launch {
             val result = loadInitial()
-            withContext(Main) {
-                onLoadResult(result)
-                invalid.compareAndSet(true, false)
-                if (result == null) {
-                    retryFunc = { dispatchLoadInitial(clear) }
-                }
+            onLoadResult(result)
+
+            invalid.compareAndSet(true, false)
+
+            if (result == null) {
+                retryFunc = { dispatchLoadInitial(clear) }
             }
+
+            onLoadInitialFinished(getLoadState())
         }
     }
 
@@ -209,16 +212,17 @@ open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalSc
     private fun scheduleLoadAfter() {
         changeState(FetchingState.FETCHING)
 
-        coroutineScope.launchIo {
+        coroutineScope.launch {
             val result = loadAfter()
-            withContext(Main) {
-                if (isInvalid()) return@withContext
-                onLoadResult(result)
+            if (isInvalid()) return@launch
 
-                if (result == null) {
-                    retryFunc = { scheduleLoadAfter() }
-                }
+            onLoadResult(result)
+
+            if (result == null) {
+                retryFunc = { scheduleLoadAfter() }
             }
+
+            onLoadAfterFinished(getLoadState())
         }
     }
 
@@ -242,6 +246,10 @@ open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalSc
         onStateChanged(newState)
     }
 
+    fun getLoadState(): Int {
+        return fetchingState.getState()
+    }
+
     /**
      * Call on state changed.
      * @param newState May be these values:
@@ -249,6 +257,16 @@ open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalSc
      *  [FetchingState.DONE_FETCHING], [FetchingState.READY_TO_FETCH]
      */
     protected open fun onStateChanged(newState: Int) {}
+
+    /**
+     * Call on load initial finish
+     */
+    protected open fun onLoadInitialFinished(currentState: Int) {}
+
+    /**
+     * Call on load after finish
+     */
+    protected open fun onLoadAfterFinished(currentState: Int) {}
 
     /**
      * Clean up resources.

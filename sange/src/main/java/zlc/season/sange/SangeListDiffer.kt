@@ -11,13 +11,13 @@ import java.util.*
 class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
     var adapter: RecyclerView.Adapter<*>? = null
 
-    private val diffCallback = PagingDiffCallback<T>()
+    private val diffCallback = DiffCallback<T>()
 
     private var list = emptyList<T>()
     private var currentList = emptyList<T>()
 
     // Max generation of currently scheduled runnable
-    private var mMaxScheduledGeneration: Int = 0
+    private var maxScheduledGeneration: Int = 0
 
     internal fun size() = currentList.size
 
@@ -41,7 +41,7 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
         }
 
         // incrementing generation means any currently-running diffs are discarded when they finish
-        val runGeneration = ++mMaxScheduledGeneration
+        val runGeneration = ++maxScheduledGeneration
 
         // initial simple removeItem toList
         if (newList.isEmpty()) {
@@ -66,14 +66,14 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
 
         if (submitNow) {
             val result = calcDiffResult(oldList, newList)
-            if (mMaxScheduledGeneration == runGeneration) {
+            if (maxScheduledGeneration == runGeneration) {
                 latchList(newList, result)
             }
         } else {
             coroutineScope.launchIo {
                 val result = calcDiffResult(oldList, newList)
                 withContext(Dispatchers.Main) {
-                    if (mMaxScheduledGeneration == runGeneration) {
+                    if (maxScheduledGeneration == runGeneration) {
                         latchList(newList, result)
                     }
                 }
@@ -123,7 +123,7 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
         }
     }
 
-    class PagingDiffCallback<T> : DiffUtil.ItemCallback<T>() {
+    class DiffCallback<T> : DiffUtil.ItemCallback<T>() {
         override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areItemsTheSame(newItem)

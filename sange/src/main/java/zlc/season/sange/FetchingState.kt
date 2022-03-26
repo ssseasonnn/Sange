@@ -17,4 +17,8 @@ class FetchingState {
     fun setState(state: Int) {
         this.loadState = state
     }
+
+    fun getState(): Int {
+        return loadState
+    }
 }

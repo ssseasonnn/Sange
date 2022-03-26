@@ -14,7 +14,7 @@ class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem
         println("load init")
         page = 0
 
-        refresh.postValue(true)
+        refresh.value = true
 
         delay(1500)
         val headers = mutableListOf<SangeItem>()
@@ -39,7 +39,7 @@ class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem
             items.add(NormalItem(i))
         }
 
-        refresh.postValue(false)
+        refresh.value = false
 
         return items
     }
