@@ -9,8 +9,8 @@ import zlc.season.sange.SangeMultiAdapter
 import zlc.season.sange.SangeViewHolder
 import zlc.season.sangedemo.R
 
-class DemoAdapter(dataSource: DataSource<SangeItem>) :
-        SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
+class DemoAdapter(dataSource: DataSource<SangeItem>, shouldInvalidate: Boolean = true) :
+    SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource, shouldInvalidate) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
         return when (viewType) {
@@ -38,7 +38,7 @@ class DemoAdapter(dataSource: DataSource<SangeItem>) :
                     R.layout.view_holder_state
                 )
             )
-            else -> throw  IllegalStateException("not support this view type:[$viewType]")
+            else -> throw IllegalStateException("not support this view type:[$viewType]")
         }
     }
 

@@ -4,7 +4,10 @@ import android.os.Looper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+
+internal val mainScope = MainScope()
 
 internal fun <T> T?.cleanUpItem() {
     this?.let {

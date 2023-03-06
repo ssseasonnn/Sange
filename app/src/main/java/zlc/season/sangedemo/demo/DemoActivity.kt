@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import zlc.season.sangedemo.R
 import zlc.season.sangedemo.databinding.ActivityDemoBinding
 
 class DemoActivity : AppCompatActivity() {
@@ -15,7 +14,8 @@ class DemoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        val adapter = DemoAdapter(viewModel.dataSource)
+
+        val adapter = DemoAdapter(viewModel.dataSource, savedInstanceState == null)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
 

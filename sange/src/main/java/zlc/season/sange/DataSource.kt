@@ -2,13 +2,10 @@ package zlc.season.sange
 
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.*
 
-open class DataSource<T>(protected val coroutineScope: CoroutineScope = GlobalScope) {
+open class DataSource<T>(protected val coroutineScope: CoroutineScope = mainScope) {
     protected open val dataStorage = DataStorage<T>()
 
     private val pagingListDiffer = SangeListDiffer<T>(coroutineScope)

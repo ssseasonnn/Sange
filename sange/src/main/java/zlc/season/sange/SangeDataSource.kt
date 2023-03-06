@@ -1,9 +1,8 @@
 package zlc.season.sange
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 
-open class SangeDataSource<T>(coroutineScope: CoroutineScope = GlobalScope) : DataSource<T>(coroutineScope) {
+open class SangeDataSource<T>(coroutineScope: CoroutineScope = mainScope) : DataSource<T>(coroutineScope) {
     override val dataStorage = SangeDataStorage<T>()
 
     /**

@@ -23,10 +23,11 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
 
     internal fun get(position: Int) = currentList[position]
 
+    @SuppressLint("NotifyDataSetChanged")
     internal fun submitList(
-            newList: List<T>,
-            initial: Boolean = false,
-            submitNow: Boolean = false,
+        newList: List<T>,
+        initial: Boolean = false,
+        submitNow: Boolean = false,
     ) {
         if (initial) {
             list = newList
@@ -93,22 +94,22 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
 
             override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
                 return diffCallback.areItemsTheSame(
-                        oldList[oldItemPosition], newList[newItemPosition]
+                    oldList[oldItemPosition], newList[newItemPosition]
                 )
             }
 
             override fun areContentsTheSame(
-                    oldItemPosition: Int,
-                    newItemPosition: Int,
+                oldItemPosition: Int,
+                newItemPosition: Int,
             ): Boolean {
                 return diffCallback.areContentsTheSame(
-                        oldList[oldItemPosition], newList[newItemPosition]
+                    oldList[oldItemPosition], newList[newItemPosition]
                 )
             }
 
             override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
                 return diffCallback.getChangePayload(
-                        oldList[oldItemPosition], newList[newItemPosition]
+                    oldList[oldItemPosition], newList[newItemPosition]
                 )
             }
         })
@@ -132,7 +133,6 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
             }
         }
 
-        @SuppressLint("DiffUtilEquals")
         override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areContentsTheSame(newItem)
