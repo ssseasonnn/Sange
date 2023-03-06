@@ -15,12 +15,12 @@
 
 ## 功能介绍：
 
-✅ 支持MultiType
-✅ 支持Header和Footer
-✅ 支持自动分页加载
-✅ 支持DiffUtils刷新
-✅ 支持加载状态显示
-✅ 支持CleanUp自动清理资源
+✅ 支持MultiType <br/>
+✅ 支持Header和Footer <br/>
+✅ 支持自动分页加载 <br/>
+✅ 支持DiffUtils刷新 <br/>
+✅ 支持加载状态显示 <br/>
+✅ 支持CleanUp自动清理资源 <br/>
 
 ## Prepare
 

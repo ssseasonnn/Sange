@@ -15,12 +15,12 @@ A super adapter for RecyclerView.
 
 ## Feature introduction：
 
-✅ Support MultiType
-✅ Support Header and Footer
-✅ Support automatic paging loading
-✅ Support DiffUtil
-✅ Support loading status display
-✅ Support automatic clean up resources
+✅ Support MultiType <br/>
+✅ Support Header and Footer <br/>
+✅ Support automatic paging loading <br/>
+✅ Support DiffUtil <br/>
+✅ Support loading status display <br/>
+✅ Support automatic clean up resources <br/>
 
 ## Prepare
 
