@@ -1,250 +1,233 @@
 ![](https://raw.githubusercontent.com/ssseasonnn/Sange/master/sange_icon.png)
 
-[![](https://jitpack.io/v/ssseasonnn/Sange.svg)](https://jitpack.io/#ssseasonnn/Sange)
+<p align="left">
+	<img src="https://img.shields.io/badge/kotlin-1.8.0-green"/>
+	<a href="https://jitpack.io/#ssseasonnn/Sange">
+		<img src="https://jitpack.io/v/ssseasonnn/Sange.svg"/>
+	</a>
+</p>
 
 # Sange
 
+A super adapter for RecyclerView.
 
+> *Read this in other languages: [中文](README.zh.md), [English](README.md)*
 
-*Read this in other languages: [中文](README.zh.md), [English](README.md)*
+## Feature introduction：
 
-> Item introduction：
-> Sange is a versatile Adapter for RecyclerView.
-> 
-> Features:
-> - Support for initial data loading
-> - Support data paging loading
-> - Support for MultiViewType
-> - Support for Header and Footer
-> - Support DiffUtil
-> - Support Loading State
-> - Support CleanUp, free resources to avoid memory leaks
+✅ Support MultiType
+✅ Support Header and Footer
+✅ Support automatic paging loading
+✅ Support DiffUtil
+✅ Support loading status display
+✅ Support automatic clean up resources
 
 ## Prepare
 
-1. Add jitpack
-```gradle
-allprojects {
+1. Add jitpack to build.gradle
+
+```gradle  
+allprojects {  
     repositories {
-        ...
-        maven { url 'https://jitpack.io' }
-    }
-}
-```
+	    maven { url 'https://jitpack.io' }    
+	}
+}  
+```  
 
 2. Add dependency
 
-```gradle
-dependencies {
-    // Replace xyz with a specific version number, for example 1.0.0
-	implementation 'com.github.ssseasonnn:Sange:xyz'
+```gradle  
+dependencies {  
+    // Replace xyz with the specific version number, for example 1.0.0   
+    implementation 'com.github.ssseasonnn:Sange:xyz'
+}  
+```  
+
+## Basic Usage
+
+Customize the data type and implement the **SangeItem** interface:
+
+```kotlin
+class NormalItem(val i: Int) : SangeItem
+```
+
+Create a DataSource and override the **loadInitial** and **loadAfter** methods, which will automatically trigger when the page is initialized and the next page of data needs to be loaded:
+
+```kotlin
+class DemoDataSource : SangeDataSource<SangeItem>() {
+
+    override suspend fun loadInitial(): List<SangeItem>? { {
+        //Load data
+        val items = mutableListOf<SangeItem>()
+        for (i in 0 until 10) {
+            items.add(NormalItem(i))
+        }
+      
+        //Return initialization load data
+        return items
+      
+        //Return an empty array to display a blank page
+        //return emptyList()
+      
+        //Return null to display the loading failure page
+        //return null
+    }
+
+    override suspend fun loadAfter(): List<SangeItem>? {
+        //...
+        
+		//Returns paging load data
+        return items
+      
+        //Return an empty array to stop paging
+        //return emptyList()
+      
+        //Return null to show paging loading failure
+        //return null
+    }
 }
 ```
 
-## Start
 
-### First Blood
+Create an adapter and associate the DataSource:
 
-Basic usage:
+```kotlin
+class DemoAdapter(dataSource: DataSource<SangeItem>) :
+        SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
 
-- Customize data types and implement **SangeItem** interface
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
+        return NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
+    }
+}
+```
 
-    ```kotlin
-    class NormalItem(val i: Int) : SangeItem
-    ```
+The above steps can complete the rendering of RecyclerView.
 
-- Create a DataSource, override the **loadInitial** and **loadAfter** methods,
-They are automatically triggered when the page is initialized and the next page of data needs to be loaded.
+## Other configurations
 
-    ```kotlin
-    class DemoDataSource : SangeDataSource<SangeItem>() {
-    
-        override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
-            //Load data
-            val items = mutableListOf<SangeItem>()
-            for (i in 0 until 10) {
-                items.add(NormalItem(i))
-            }
-          
-            //Set the initial loading result
-            loadCallback.setResult(items)
-          
-            //Show blank page
-            //loadCallback.setResult(emptyList())
-          
-            //Display loading failure page
-            //loadCallback.setResult(null)
-        }
-    
-        override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
-            //...
-          
-            //Set paging load results
-            loadCallback.setResult(items)
-          
-            //Stop paging loading
-            //loadCallback.setResult(emptyList())
-          
-            //Display paging load failed
-            //loadCallback.setResult(null)
+### 1.Custom paging load status
+
+Create the data type of the loading state:
+
+```kotlin
+class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
+    override fun viewType() = STATE
+}
+```
+> Also implement the **SangeItem** interface and override the viewType method, in which a new Type type is returned
+
+Overeride the onStateChanged(newState) method in DataSource, which will be called according to the state in loading
+
+```kotlin
+class DemoDataSource : SangeDataSource<SangeItem>() {
+
+    override fun onStateChanged(newState: Int) {
+        setState(StateItem(state = newState, retry = ::retry))
+    }
+}
+```
+
+Provide ViewHolder for rendering state:
+
+```kotlin
+class StateViewHolder(containerView: View) :
+        SangeViewHolder<SangeItem>(containerView) {
+
+    override fun onBind(t: SangeItem) {
+        super.onBind(t)
+        t as StateItem
+        
+       //Set Status View
+        when {
+            t.state == FetchingState.FETCHING -> {}
+            t.state == FetchingState.FETCHING_ERROR -> {}
+            t.state == FetchingState.DONE_FETCHING -> {}
+            else -> {}
         }
     }
-    ```
+}
+```
 
-    > Both the loadInitial and loadAfter methods will be called in the child thread, 
-    so there is no need to worry about any time-consuming operations in both methods.
+Finally, the loading status is displayed:
 
-- Create an Adapter and associate the DataSource.
+```kotlin
+class DemoAdapter(dataSource: DataSource<SangeItem>) :
+        SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
 
-    ```kotlin
-    class DemoAdapter(dataSource: DataSource<SangeItem>) :
-            SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
-            return NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
+        return when (viewType) {
+            STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
+            else -> NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
         }
     }
-    ```
+}
 
-### Double Kill
+```
 
-Custom paging load status
+### 2. Refresh and Retry
 
-- Create a data type for the state:
+```kotlin
+//Refresh dataSource, clear indicates whether to clear the previous data
+dataSource.invalidate(clear=true)
 
-    ```kotlin
-    class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
-        override fun viewType() = STATE
-    }
-    ```
-    > Also implement the **SangeItem** interface, and override the viewType method, which returns a new Type type in the method.
+//Retry. This method can be used to retry when loading errors are encountered
+dataSource.retry()
+```
 
-- Override the **onStateChanged(newState)** method in the DataSource, which will be called based on the state in the load.
+### 3. Partial refresh
 
-    ```kotlin
-    class DemoDataSource : SangeDataSource<SangeItem>() {
+Sange uses DiffUtil to update the RecyclerView efficiently. You can tell Sange how to refresh by rewriting the methods in the data class:
 
-        override fun loadInitial(loadCallback: LoadCallback<SangeItem>) {
-            //...
-        }
+```kotlin
+class NormalItem(val i: Int) : SangeItem {
 
-        override fun loadAfter(loadCallback: LoadCallback<SangeItem>) {
-            //...
-        }
-
-        override fun onStateChanged(newState: Int) {
-            //Add an extra status item
-            setState(StateItem(state = newState, retry = ::retry))
-        }
-    }
-    ```
-
-- Provide a ViewHolder that renders the State:
-
-    ```kotlin
-    class StateViewHolder(containerView: View) :
-            SangeViewHolder<SangeItem>(containerView) {
-
-        override fun onBind(t: SangeItem) {
-            super.onBind(t)
-            t as StateItem
-            
-           //Set status view
-            when {
-                t.state == FetchingState.FETCHING -> {}
-                t.state == FetchingState.FETCHING_ERROR -> {}
-                t.state == FetchingState.DONE_FETCHING -> {}
-                else -> {}
-            }
-        }
-    }
-    ```
-
-- Finally, the loading status is displayed.
-
-    ```kotlin
-    class DemoAdapter(dataSource: DataSource<SangeItem>) :
-            SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource) {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
-            return when (viewType) {
-                STATE -> StateViewHolder(inflate(parent, R.layout.view_holder_state))
-                else -> NormalViewHolder(inflate(parent, R.layout.view_holder_normal))
-            }
-        }
+    override fun areContentsTheSame(other: Differ): Boolean {
+        //use your own diff logic
+        //...
     }
 
-    ```
-
-### Triple Kill
-
-- Refresh and retry
-
-    The DataSource provides the **invalidate()** and **retry()** methods. 
-    When you need to refresh the data, you can call the **invalidate()** method.
-    When the load fails and needs to be retried, call the **retry()** method.
-
-- Customize DiffCallback
-
-    Sange uses DiffUtil to update RecyclerView efficiently. 
-    You can change the comparison logic according to your actual situation:
-
-    ```kotlin
-    class NormalItem(val i: Int) : SangeItem {
-
-        override fun areContentsTheSame(other: Differ): Boolean {
-            //use your own diff logic
-            //...
-        }
-
-        override fun areItemsTheSame(other: Differ): Boolean {
-            //use your own diff logic
-            //...
-        }
-
-        override fun getChangePayload(other: Differ): Any? {
-            //...
-        }
+    override fun areItemsTheSame(other: Differ): Boolean {
+        //use your own diff logic
+        //...
     }
-    ```
 
-### Ultra Kill
+    override fun getChangePayload(other: Differ): Any? {
+        //...
+    }
+}
+```
 
-Resource cleanup
- 
-- SangeItem provides the **cleanUp** method, which is called automatically when the page is destroyed and the data is cleaned up.
-So you can release resources here to avoid the risk of memory leaks.
+### 4. Resource cleanup
 
-    ```kotlin
-    class NormalItem(val i: Int) : SangeItem {
-    
-        private val thread: Thread
-    
-        var stop = false
-    
-        init {
-            //Test auto clean up!!
-            thread = thread {
-                for (i in 0..100) {
-                    if (stop) {
-                        break
-                    }
-                    Log.d("Sange", "$i")
-                    Thread.sleep(1000)
+The SangeItem interface provides **cleanUp()** method, which can be automatically called when the page is destroyed and the data item is removed, so you can release resources here to avoid the risk of memory leakage
+
+```kotlin
+class NormalItem(val i: Int) : SangeItem {
+
+    private val thread: Thread
+
+    var stop = false
+
+    init {
+        //Test auto clean up!!
+        thread = thread {
+            for (i in 0..100) {
+                if (stop) {
+                    break
                 }
+                Log.d("Sange", "$i")
+                Thread.sleep(1000)
             }
-    
         }
-    
-        override fun cleanUp() {
-            //Release thread resources
-            stop = true
-        }
-    }
-    ```
 
-## END
-    
+    }
+
+    override fun cleanUp() {
+        //Release thread resources
+        stop = true
+    }
+}
+```
 
 ### License
 
