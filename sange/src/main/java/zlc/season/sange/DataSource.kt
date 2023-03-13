@@ -288,11 +288,11 @@ open class DataSource<T>(protected val coroutineScope: CoroutineScope = mainScop
         }
     }
 
-    internal fun getSizeForAdapter(): Int {
+    open fun getSizeForAdapter(): Int {
         return pagingListDiffer.size()
     }
 
-    internal fun getItemForAdapter(position: Int): T {
+    open fun getItemForAdapter(position: Int): T {
         dispatchLoadAround(position)
         return pagingListDiffer.get(position)
     }
