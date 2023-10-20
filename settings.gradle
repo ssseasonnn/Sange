@@ -1,1 +1,2 @@
 include ':app', ':sange'
+include ':sange-datasource'

@@ -5,8 +5,8 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 abstract class SangeAdapter<T : Any, VH : ViewHolder>(
-        protected open val dataSource: DataSource<T>,
-        private val shouldInvalidate: Boolean
+    private val dataSource: SangeDataSource<T>,
+    private val shouldInvalidate: Boolean
 ) : Adapter<VH>() {
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {

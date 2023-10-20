@@ -31,6 +31,6 @@ class DemoActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.dataSource.cleanUp()
+        viewModel.dataSource.cleanUpAll()
     }
 }

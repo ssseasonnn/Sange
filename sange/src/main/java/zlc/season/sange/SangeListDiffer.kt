@@ -6,9 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import zlc.season.sange.datasource.launchIo
 import java.util.*
 
-class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
+class SangeListDiffer<T : Any>(private val coroutineScope: CoroutineScope) {
     var adapter: RecyclerView.Adapter<*>? = null
 
     private val diffCallback = DiffCallback<T>()
@@ -124,7 +125,8 @@ class SangeListDiffer<T>(private val coroutineScope: CoroutineScope) {
         }
     }
 
-    class DiffCallback<T> : DiffUtil.ItemCallback<T>() {
+    class DiffCallback<T : Any> : DiffUtil.ItemCallback<T>() {
+
         override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
             return if (oldItem is Differ && newItem is Differ) {
                 oldItem.areItemsTheSame(newItem)

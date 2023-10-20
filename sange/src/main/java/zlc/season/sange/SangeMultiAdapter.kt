@@ -4,7 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.NO_POSITION
 
 abstract class SangeMultiAdapter<T : SangeItem, VH : SangeViewHolder<T>>(
-    dataSource: DataSource<T>,
+    dataSource: SangeDataSource<T>,
     shouldInvalidate: Boolean = true
 ) : SangeAdapter<T, VH>(dataSource, shouldInvalidate) {
 

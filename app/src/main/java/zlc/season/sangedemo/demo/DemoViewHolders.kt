@@ -1,7 +1,6 @@
 package zlc.season.sangedemo.demo
 
 import android.view.View
-import zlc.season.sange.FetchingState
 import zlc.season.sange.SangeItem
 import zlc.season.sange.SangeViewHolder
 import zlc.season.sangedemo.databinding.ViewHolderFooterBinding
@@ -54,15 +53,15 @@ class StateViewHolder(containerView: View) :
         }
 
         when (t.state) {
-            FetchingState.FETCHING -> {
+            zlc.season.sange.datasource.FetchState.FETCHING -> {
                 binding.stateLoading.visibility = View.VISIBLE
                 binding.tvStateContent.visibility = View.GONE
             }
-            FetchingState.FETCHING_ERROR -> {
+            zlc.season.sange.datasource.FetchState.FETCHING_ERROR -> {
                 binding.stateLoading.visibility = View.GONE
                 binding.tvStateContent.visibility = View.VISIBLE
             }
-            FetchingState.DONE_FETCHING -> {
+            zlc.season.sange.datasource.FetchState.DONE_FETCHING -> {
                 binding.stateLoading.visibility = View.GONE
                 binding.tvStateContent.visibility = View.GONE
             }

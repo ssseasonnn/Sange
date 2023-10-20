@@ -1,15 +1,17 @@
-package zlc.season.sange
+package zlc.season.sange.datasource
 
 import android.os.Looper
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-internal val mainScope = MainScope()
+val mainScope = MainScope()
+val TAG = "Sange"
 
-internal fun <T> T?.cleanUpItem() {
+fun <T> T?.cleanUpItem() {
     this?.let {
         if (this is Cleanable) {
             this.cleanUp()
@@ -17,17 +19,17 @@ internal fun <T> T?.cleanUpItem() {
     }
 }
 
-internal fun <T> List<T>.cleanUp() {
+fun <T> List<T>.cleanUp() {
     this.forEach {
         it.cleanUpItem()
     }
 }
 
-internal fun isMainThread(): Boolean {
+fun isMainThread(): Boolean {
     return Looper.getMainLooper().thread === Thread.currentThread()
 }
 
-internal fun CoroutineScope.ensureMainThread(block: () -> Unit) {
+fun CoroutineScope.ensureMainThread(block: () -> Unit) {
     if (isMainThread()) {
         block()
     } else {
@@ -37,7 +39,7 @@ internal fun CoroutineScope.ensureMainThread(block: () -> Unit) {
     }
 }
 
-internal fun <T> assertMainThreadWithResult(block: () -> T): T {
+fun <T> assertMainThreadWithResult(block: () -> T): T {
     if (isMainThread()) {
         return block()
     } else {
@@ -45,14 +47,22 @@ internal fun <T> assertMainThreadWithResult(block: () -> T): T {
     }
 }
 
-internal fun CoroutineScope.launchIo(block: suspend () -> Unit) {
+fun CoroutineScope.launchIo(block: suspend () -> Unit) {
     launch(IO) {
         block()
     }
 }
 
-internal fun CoroutineScope.launchMain(block: suspend () -> Unit) {
+fun CoroutineScope.launchMain(block: suspend () -> Unit) {
     launch(Main) {
         block()
+    }
+}
+
+fun safe(block: () -> Unit) {
+    try {
+        block()
+    } catch (e: Exception) {
+        Log.w(TAG, e.message, e)
     }
 }

@@ -1,6 +1,6 @@
-package zlc.season.sange
+package zlc.season.sange.datasource
 
-class FetchingState {
+class FetchState {
     companion object {
         const val READY_TO_FETCH = 0
         const val FETCHING = 1
@@ -8,17 +8,17 @@ class FetchingState {
         const val FETCHING_ERROR = 3
     }
 
-    private var loadState = READY_TO_FETCH
+    private var fetchState = READY_TO_FETCH
 
     fun isNotReady(): Boolean {
-        return loadState != READY_TO_FETCH
+        return fetchState != READY_TO_FETCH
     }
 
     fun setState(state: Int) {
-        this.loadState = state
+        this.fetchState = state
     }
 
     fun getState(): Int {
-        return loadState
+        return fetchState
     }
 }

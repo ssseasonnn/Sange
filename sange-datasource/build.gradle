@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace 'zlc.season.sange'
+    namespace 'zlc.season.sange.datasource'
     compileSdk 33
     defaultConfig {
         minSdk 15
@@ -18,8 +18,8 @@ android {
 }
 
 dependencies {
-    api(project(":sange-datasource"))
-    api 'androidx.recyclerview:recyclerview:1.2.1'
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 
     testImplementation 'junit:junit:4.13.2'
 }

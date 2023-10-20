@@ -63,7 +63,7 @@ class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem
         return items
     }
 
-    override fun onStateChanged(newState: Int) {
+    override fun onFetchStateChanged(newState: Int) {
         setState(StateItem(newState, ::retry))
     }
 }

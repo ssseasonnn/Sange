@@ -3,13 +3,14 @@ package zlc.season.sangedemo.demo
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import zlc.season.sange.DataSource
+import zlc.season.sange.SangeDataSource
+import zlc.season.sange.datasource.DataSource
 import zlc.season.sange.SangeItem
 import zlc.season.sange.SangeMultiAdapter
 import zlc.season.sange.SangeViewHolder
 import zlc.season.sangedemo.R
 
-class DemoAdapter(dataSource: DataSource<SangeItem>, shouldInvalidate: Boolean = true) :
+class DemoAdapter(dataSource: SangeDataSource<SangeItem>, shouldInvalidate: Boolean = true) :
     SangeMultiAdapter<SangeItem, SangeViewHolder<SangeItem>>(dataSource, shouldInvalidate) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SangeViewHolder<SangeItem> {
