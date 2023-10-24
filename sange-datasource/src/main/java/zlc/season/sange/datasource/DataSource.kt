@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope()) : AbstractDataSource<T>(coroutineScope) {
-    private val fetchState = FetchState()
+    private val fetchStateHolder = FetchStateHolder()
     private val invalid = AtomicBoolean(false)
     private var retryFunc: () -> Unit = {}
 
@@ -52,8 +52,8 @@ abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope())
     protected fun dispatchLoadAround(position: Int) {
         if (isInvalid()) return
 
-        if (shouldLoadNext(position)) {
-            if (fetchState.isNotReady()) {
+        if (shouldLoadAfter(position)) {
+            if (fetchStateHolder.isNotReady()) {
                 return
             }
             scheduleLoadAfter()
@@ -61,7 +61,7 @@ abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope())
     }
 
     private fun scheduleLoadAfter() {
-        changeFetchState(FetchState.FETCHING)
+        changeFetchState(FetchState.Fetching)
 
         launch {
             val result = loadAfter()
@@ -80,15 +80,15 @@ abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope())
     private fun onLoadResult(data: List<T>?) {
         if (data != null) {
             if (data.isEmpty()) {
-                changeFetchState(FetchState.DONE_FETCHING)
+                changeFetchState(FetchState.DoneFetching)
             } else {
                 addItems(data, delay = true)
                 notifySubmitList()
 
-                changeFetchState(FetchState.READY_TO_FETCH)
+                changeFetchState(FetchState.ReadyToFetch)
             }
         } else {
-            changeFetchState(FetchState.FETCHING_ERROR)
+            changeFetchState(FetchState.FetchingError)
         }
     }
 
@@ -96,8 +96,8 @@ abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope())
         return invalid.get()
     }
 
-    private fun changeFetchState(newState: Int) {
-        fetchState.setState(newState)
+    private fun changeFetchState(newState: FetchState) {
+        fetchStateHolder.setState(newState)
         onFetchStateChanged(newState)
     }
 
@@ -105,27 +105,27 @@ abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope())
 
     open suspend fun loadAfter(): List<T>? = emptyList()
 
-    open fun shouldLoadNext(position: Int): Boolean {
+    open fun shouldLoadAfter(position: Int): Boolean {
         return position == totalSize() - 1
     }
 
-    fun getFetchState() = fetchState.getState()
+    fun getFetchState() = fetchStateHolder.getState()
 
     /**
      * Call on state changed.
      * @param newState May be these values:
-     *  [FetchState.FETCHING], [FetchState.FETCHING_ERROR],
-     *  [FetchState.DONE_FETCHING], [FetchState.READY_TO_FETCH]
+     *  [FetchState.Fetching], [FetchState.FetchingError],
+     *  [FetchState.DoneFetching], [FetchState.ReadyToFetch]
      */
-    protected open fun onFetchStateChanged(newState: Int) {}
+    protected open fun onFetchStateChanged(newState: FetchState) {}
 
     /**
      * Call on load initial finish
      */
-    protected open fun onLoadInitialFinished(currentState: Int) {}
+    protected open fun onLoadInitialFinished(currentState: FetchState) {}
 
     /**
      * Call on load after finish
      */
-    protected open fun onLoadAfterFinished(currentState: Int) {}
+    protected open fun onLoadAfterFinished(currentState: FetchState) {}
 }

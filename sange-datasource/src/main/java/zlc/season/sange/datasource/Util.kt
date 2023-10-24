@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-val mainScope = MainScope()
 val TAG = "Sange"
+val mainScope = MainScope()
 
 fun <T> T?.cleanUpItem() {
     this?.let {
@@ -39,7 +39,7 @@ fun CoroutineScope.ensureMainThread(block: () -> Unit) {
     }
 }
 
-fun <T> assertMainThreadWithResult(block: () -> T): T {
+fun <T> withResultOnMain(block: () -> T): T {
     if (isMainThread()) {
         return block()
     } else {
