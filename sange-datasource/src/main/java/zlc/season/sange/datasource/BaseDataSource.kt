@@ -2,7 +2,7 @@ package zlc.season.sange.datasource
 
 import kotlinx.coroutines.CoroutineScope
 
-abstract class AbstractDataSource<T : Any>(coroutineScope: CoroutineScope) : CoroutineScope by coroutineScope {
+abstract class BaseDataSource<T : Any>(coroutineScope: CoroutineScope) : CoroutineScope by coroutineScope {
     private val dataStorage = DataStorage<T>()
 
     abstract fun notifySubmitList(submitNow: Boolean = false)

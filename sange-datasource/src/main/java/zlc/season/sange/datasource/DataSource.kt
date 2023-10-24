@@ -5,7 +5,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
-abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope()) : AbstractDataSource<T>(coroutineScope) {
+abstract class DataSource<T : Any>(coroutineScope: CoroutineScope = MainScope()) : BaseDataSource<T>(coroutineScope) {
     private val fetchStateHolder = FetchStateHolder()
     private val invalid = AtomicBoolean(false)
     private var retryFunc: () -> Unit = {}

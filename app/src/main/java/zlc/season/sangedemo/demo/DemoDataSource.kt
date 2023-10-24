@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import zlc.season.sange.SangeDataSource
 import zlc.season.sange.SangeItem
+import zlc.season.sange.datasource.FetchState
 
 class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem>(coroutineScope) {
     val refresh = MutableLiveData<Boolean>()
@@ -63,7 +64,7 @@ class DemoDataSource(coroutineScope: CoroutineScope) : SangeDataSource<SangeItem
         return items
     }
 
-    override fun onFetchStateChanged(newState: Int) {
+    override fun onFetchStateChanged(newState: FetchState) {
         setState(StateItem(newState, ::retry))
     }
 }

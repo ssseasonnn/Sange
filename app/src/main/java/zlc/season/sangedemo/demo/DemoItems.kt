@@ -2,6 +2,7 @@ package zlc.season.sangedemo.demo
 
 import android.util.Log
 import zlc.season.sange.SangeItem
+import zlc.season.sange.datasource.FetchState
 import kotlin.concurrent.thread
 
 const val NORMAL = 0
@@ -50,6 +51,6 @@ class FooterItem(val i: Int) : SangeItem {
     override fun toString() = "Footer $i"
 }
 
-class StateItem(val state: Int, val retry: () -> Unit) : SangeItem {
+class StateItem(val state: FetchState, val retry: () -> Unit) : SangeItem {
     override fun viewType() = STATE
 }
